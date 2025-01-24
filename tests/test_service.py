@@ -3,6 +3,7 @@ import pytest
 import sys
 
 from browser_use.agent.message_manager.service import MessageManager
+from browser_use.agent.prompts import SystemPrompt
 from browser_use.agent.service import Agent
 from browser_use.agent.views import ActionResult, AgentOutput
 from browser_use.browser.browser import Browser
@@ -11,7 +12,9 @@ from browser_use.browser.views import BrowserState
 from browser_use.controller.registry.service import Registry
 from browser_use.controller.registry.views import ActionModel
 from browser_use.controller.service import Controller
+from datetime import datetime
 from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from pydantic import BaseModel
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
@@ -215,3 +218,480 @@ class TestRegistry:
         # Verify that the action functions were called with correct parameters
         registry.registry.actions['test_action_with_browser'].function.assert_called_once_with(param1='test_value', browser=mock_browser)
         registry.registry.actions['test_action_without_browser'].function.assert_called_once_with(param1='test_value')
+
+class TestMessageManager:
+    @patch('browser_use.agent.message_manager.service.SystemPrompt')
+    def test_cut_messages(self, mock_system_prompt):
+        """
+        Test the cut_messages method of MessageManager.
+
+        This test ensures that:
+        1. Messages are cut when the total tokens exceed the maximum limit.
+        2. The last message is properly trimmed.
+        3. The total token count is updated correctly after cutting.
+        """
+        # Mock the SystemPrompt class and its get_system_message method
+        mock_system_prompt_instance = MagicMock()
+        mock_system_prompt_instance.get_system_message.return_value = HumanMessage(content="System message")
+        mock_system_prompt.return_value = mock_system_prompt_instance
+
+        # Create a MessageManager instance with a small max_input_tokens
+        llm_mock = MagicMock()
+        message_manager = MessageManager(
+            llm=llm_mock,
+            task="Test task",
+            action_descriptions="Test descriptions",
+            system_prompt_class=mock_system_prompt,
+            max_input_tokens=1000,
+            estimated_characters_per_token=3
+        )
+
+        # Add a large message that exceeds the token limit
+        large_message = HumanMessage(content="A" * 3000)  # This should be about 1000 tokens
+        message_manager._add_message_with_tokens(large_message)
+
+        # Verify that the total tokens exceed the limit
+        assert message_manager.history.total_tokens > message_manager.max_input_tokens
+
+        # Call cut_messages
+        message_manager.cut_messages()
+
+        # Verify that messages were cut
+        assert message_manager.history.total_tokens <= message_manager.max_input_tokens
+
+        # Verify that the last message was trimmed
+        last_message = message_manager.history.messages[-1].message
+        assert isinstance(last_message, HumanMessage)
+        assert len(last_message.content) < 3000
+
+        # Verify that the total token count was updated
+        assert message_manager.history.total_tokens == sum(msg.metadata.input_tokens for msg in message_manager.history.messages)
+
+    @patch('browser_use.agent.message_manager.service.SystemPrompt')
+    def test_cut_messages(self, mock_system_prompt):
+        """
+        Test the cut_messages method of MessageManager.
+
+        This test ensures that:
+        1. Messages are cut when the total tokens exceed the maximum limit.
+        2. The last message is properly trimmed.
+        3. The total token count is updated correctly after cutting.
+        """
+        # Mock the SystemPrompt class and its get_system_message method
+        mock_system_prompt_instance = MagicMock()
+        mock_system_prompt_instance.get_system_message.return_value = HumanMessage(content="System message")
+        mock_system_prompt.return_value = mock_system_prompt_instance
+
+        # Create a MessageManager instance with a small max_input_tokens
+        llm_mock = MagicMock()
+        message_manager = MessageManager(
+            llm=llm_mock,
+            task="Test task",
+            action_descriptions="Test descriptions",
+            system_prompt_class=mock_system_prompt,
+            max_input_tokens=1000,
+            estimated_characters_per_token=3
+        )
+
+        # Add a large message that exceeds the token limit
+        large_message = HumanMessage(content="A" * 3000)  # This should be about 1000 tokens
+        message_manager._add_message_with_tokens(large_message)
+
+        # Verify that the total tokens exceed the limit
+        assert message_manager.history.total_tokens > message_manager.max_input_tokens
+
+        # Call cut_messages
+        message_manager.cut_messages()
+
+        # Verify that messages were cut
+        assert message_manager.history.total_tokens <= message_manager.max_input_tokens
+
+        # Verify that the last message was trimmed
+        last_message = message_manager.history.messages[-1].message
+        assert isinstance(last_message, HumanMessage)
+        assert len(last_message.content) < 3000
+
+        # Verify that the total token count was updated
+        assert message_manager.history.total_tokens == sum(msg.metadata.input_tokens for msg in message_manager.history.messages)
+
+    @patch('browser_use.agent.message_manager.service.SystemPrompt')
+    def test_cut_messages(self, mock_system_prompt):
+        """
+        Test the cut_messages method of MessageManager.
+
+        This test ensures that:
+        1. Messages are cut when the total tokens exceed the maximum limit.
+        2. The last message is properly trimmed.
+        3. The total token count is updated correctly after cutting.
+        """
+        # Mock the SystemPrompt class and its get_system_message method
+        mock_system_prompt_instance = MagicMock()
+        mock_system_prompt_instance.get_system_message.return_value = HumanMessage(content="System message")
+        mock_system_prompt.return_value = mock_system_prompt_instance
+
+        # Create a MessageManager instance with a small max_input_tokens
+        llm_mock = MagicMock()
+        message_manager = MessageManager(
+            llm=llm_mock,
+            task="Test task",
+            action_descriptions="Test descriptions",
+            system_prompt_class=mock_system_prompt,
+            max_input_tokens=1000,
+            estimated_characters_per_token=3
+        )
+
+        # Add a large message that exceeds the token limit
+        large_message = HumanMessage(content="A" * 3000)  # This should be about 1000 tokens
+        message_manager._add_message_with_tokens(large_message)
+
+        # Verify that the total tokens exceed the limit
+        assert message_manager.history.total_tokens > message_manager.max_input_tokens
+
+        # Call cut_messages
+        message_manager.cut_messages()
+
+        # Verify that messages were cut
+        assert message_manager.history.total_tokens <= message_manager.max_input_tokens
+
+        # Verify that the last message was trimmed
+        last_message = message_manager.history.messages[-1].message
+        assert isinstance(last_message, HumanMessage)
+        assert len(last_message.content) < 3000
+
+        # Verify that the total token count was updated
+        assert message_manager.history.total_tokens == sum(msg.metadata.input_tokens for msg in message_manager.history.messages)
+
+    @patch('browser_use.agent.message_manager.service.SystemPrompt')
+    def test_cut_messages(self, mock_system_prompt):
+        """
+        Test the cut_messages method of MessageManager.
+
+        This test ensures that:
+        1. Messages are cut when the total tokens exceed the maximum limit.
+        2. The last message is properly trimmed.
+        3. The total token count is updated correctly after cutting.
+        """
+        # Mock the SystemPrompt class and its get_system_message method
+        mock_system_prompt_instance = MagicMock()
+        mock_system_prompt_instance.get_system_message.return_value = HumanMessage(content="System message")
+        mock_system_prompt.return_value = mock_system_prompt_instance
+
+        # Create a MessageManager instance with a small max_input_tokens
+        llm_mock = MagicMock()
+        message_manager = MessageManager(
+            llm=llm_mock,
+            task="Test task",
+            action_descriptions="Test descriptions",
+            system_prompt_class=mock_system_prompt,
+            max_input_tokens=1000,
+            estimated_characters_per_token=3
+        )
+
+        # Add a large message that exceeds the token limit
+        large_message = HumanMessage(content="A" * 3000)  # This should be about 1000 tokens
+        message_manager._add_message_with_tokens(large_message)
+
+        # Verify that the total tokens exceed the limit
+        assert message_manager.history.total_tokens > message_manager.max_input_tokens
+
+        # Call cut_messages
+        message_manager.cut_messages()
+
+        # Verify that messages were cut
+        assert message_manager.history.total_tokens <= message_manager.max_input_tokens
+
+        # Verify that the last message was trimmed
+        last_message = message_manager.history.messages[-1].message
+        assert isinstance(last_message, HumanMessage)
+        assert len(last_message.content) < 3000
+
+        # Verify that the total token count was updated
+        assert message_manager.history.total_tokens == sum(msg.metadata.input_tokens for msg in message_manager.history.messages)
+
+    @patch('browser_use.agent.message_manager.service.SystemPrompt')
+    def test_cut_messages(self, mock_system_prompt):
+        """
+        Test the cut_messages method of MessageManager.
+
+        This test ensures that:
+        1. Messages are cut when the total tokens exceed the maximum limit.
+        2. The last message is properly trimmed.
+        3. The total token count is updated correctly after cutting.
+        """
+        # Mock the SystemPrompt class and its get_system_message method
+        mock_system_prompt_instance = MagicMock()
+        mock_system_prompt_instance.get_system_message.return_value = HumanMessage(content="System message")
+        mock_system_prompt.return_value = mock_system_prompt_instance
+
+        # Create a MessageManager instance with a small max_input_tokens
+        llm_mock = MagicMock()
+        message_manager = MessageManager(
+            llm=llm_mock,
+            task="Test task",
+            action_descriptions="Test descriptions",
+            system_prompt_class=mock_system_prompt,
+            max_input_tokens=1000,
+            estimated_characters_per_token=3
+        )
+
+        # Add a large message that exceeds the token limit
+        large_message = HumanMessage(content="A" * 3000)  # This should be about 1000 tokens
+        message_manager._add_message_with_tokens(large_message)
+
+        # Verify that the total tokens exceed the limit
+        assert message_manager.history.total_tokens > message_manager.max_input_tokens
+
+        # Call cut_messages
+        message_manager.cut_messages()
+
+        # Verify that messages were cut
+        assert message_manager.history.total_tokens <= message_manager.max_input_tokens
+
+        # Verify that the last message was trimmed
+        last_message = message_manager.history.messages[-1].message
+        assert isinstance(last_message, HumanMessage)
+        assert len(last_message.content) < 3000
+
+        # Verify that the total token count was updated
+        assert message_manager.history.total_tokens == sum(msg.metadata.input_tokens for msg in message_manager.history.messages)
+
+    class TestSystemPrompt(SystemPrompt):
+        def get_system_message(self):
+            return HumanMessage(content="Test system message")
+
+    def test_cut_messages(self):
+        """
+        Test the cut_messages method of MessageManager.
+
+        This test ensures that:
+        1. Messages are cut when the total tokens exceed the maximum limit.
+        2. The last message is properly trimmed.
+        3. The total token count is updated correctly after cutting.
+        """
+        # Create a MessageManager instance with a small max_input_tokens
+        llm_mock = MagicMock()
+        message_manager = MessageManager(
+            llm=llm_mock,
+            task="Test task",
+            action_descriptions="Test descriptions",
+            system_prompt_class=self.TestSystemPrompt,
+            max_input_tokens=1000,
+            estimated_characters_per_token=3
+        )
+
+        # Add a large message that exceeds the token limit
+        large_message = HumanMessage(content="A" * 3000)  # This should be about 1000 tokens
+        message_manager._add_message_with_tokens(large_message)
+
+        # Verify that the total tokens exceed the limit
+        assert message_manager.history.total_tokens > message_manager.max_input_tokens
+
+        # Call cut_messages
+        message_manager.cut_messages()
+
+        # Verify that messages were cut
+        assert message_manager.history.total_tokens <= message_manager.max_input_tokens
+
+        # Verify that the last message was trimmed
+        last_message = message_manager.history.messages[-1].message
+        assert isinstance(last_message, HumanMessage)
+        assert len(last_message.content) < 3000
+
+        # Verify that the total token count was updated
+        assert message_manager.history.total_tokens == sum(msg.metadata.input_tokens for msg in message_manager.history.messages)
+
+    class MockSystemPrompt(SystemPrompt):
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def get_system_message(self):
+            return HumanMessage(content="Mock system message")
+
+    @patch('browser_use.agent.message_manager.service.SystemPrompt', new=MockSystemPrompt)
+    def test_cut_messages(self):
+        """
+        Test the cut_messages method of MessageManager.
+
+        This test ensures that:
+        1. Messages are cut when the total tokens exceed the maximum limit.
+        2. The last message is properly trimmed.
+        3. The total token count is updated correctly after cutting.
+        """
+        # Create a MessageManager instance with a small max_input_tokens
+        llm_mock = MagicMock()
+        message_manager = MessageManager(
+            llm=llm_mock,
+            task="Test task",
+            action_descriptions="Test descriptions",
+            system_prompt_class=self.MockSystemPrompt,
+            max_input_tokens=1000,
+            estimated_characters_per_token=3
+        )
+
+        # Add a large message that exceeds the token limit
+        large_message = HumanMessage(content="A" * 3000)  # This should be about 1000 tokens
+        message_manager._add_message_with_tokens(large_message)
+
+        # Verify that the total tokens exceed the limit
+        assert message_manager.history.total_tokens > message_manager.max_input_tokens
+
+        # Call cut_messages
+        message_manager.cut_messages()
+
+        # Verify that messages were cut
+        assert message_manager.history.total_tokens <= message_manager.max_input_tokens
+
+        # Verify that the last message was trimmed
+        last_message = message_manager.history.messages[-1].message
+        assert isinstance(last_message, HumanMessage)
+        assert len(last_message.content) < 3000
+
+        # Verify that the total token count was updated
+        assert message_manager.history.total_tokens == sum(msg.metadata.input_tokens for msg in message_manager.history.messages)
+
+    class MockSystemPrompt(SystemPrompt):
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def get_system_message(self):
+            return HumanMessage(content="Mock system message")
+
+    @patch('browser_use.agent.message_manager.service.SystemPrompt', new=MockSystemPrompt)
+    def test_cut_messages(self):
+        """
+        Test the cut_messages method of MessageManager.
+
+        This test ensures that:
+        1. Messages are cut when the total tokens exceed the maximum limit.
+        2. The last message is properly trimmed.
+        3. The total token count is updated correctly after cutting.
+        """
+        # Create a MessageManager instance with a small max_input_tokens
+        llm_mock = MagicMock()
+        message_manager = MessageManager(
+            llm=llm_mock,
+            task="Test task",
+            action_descriptions="Test descriptions",
+            system_prompt_class=self.MockSystemPrompt,
+            max_input_tokens=1000,
+            estimated_characters_per_token=3
+        )
+
+        # Add a large message that exceeds the token limit
+        large_message = HumanMessage(content="A" * 3000)  # This should be about 1000 tokens
+        message_manager._add_message_with_tokens(large_message)
+
+        # Verify that the total tokens exceed the limit
+        assert message_manager.history.total_tokens > message_manager.max_input_tokens
+
+        # Call cut_messages
+        message_manager.cut_messages()
+
+        # Verify that messages were cut
+        assert message_manager.history.total_tokens <= message_manager.max_input_tokens
+
+        # Verify that the last message was trimmed
+        last_message = message_manager.history.messages[-1].message
+        assert isinstance(last_message, HumanMessage)
+        assert len(last_message.content) < 3000
+
+        # Verify that the total token count was updated
+        assert message_manager.history.total_tokens == sum(msg.metadata.input_tokens for msg in message_manager.history.messages)
+
+    class MockSystemPrompt(SystemPrompt):
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def get_system_message(self) -> BaseMessage:
+            return HumanMessage(content="Mock system message")
+
+    @patch('browser_use.agent.message_manager.service.SystemPrompt', new=MockSystemPrompt)
+    def test_cut_messages(self):
+        """
+        Test the cut_messages method of MessageManager.
+
+        This test ensures that:
+        1. Messages are cut when the total tokens exceed the maximum limit.
+        2. The last message is properly trimmed.
+        3. The total token count is updated correctly after cutting.
+        """
+        # Create a MessageManager instance with a small max_input_tokens
+        llm_mock = MagicMock()
+        message_manager = MessageManager(
+            llm=llm_mock,
+            task="Test task",
+            action_descriptions="Test descriptions",
+            system_prompt_class=self.MockSystemPrompt,
+            max_input_tokens=1000,
+            estimated_characters_per_token=3
+        )
+
+        # Add a large message that exceeds the token limit
+        large_message = HumanMessage(content="A" * 3000)  # This should be about 1000 tokens
+        message_manager._add_message_with_tokens(large_message)
+
+        # Verify that the total tokens exceed the limit
+        assert message_manager.history.total_tokens > message_manager.max_input_tokens
+
+        # Call cut_messages
+        message_manager.cut_messages()
+
+        # Verify that messages were cut
+        assert message_manager.history.total_tokens <= message_manager.max_input_tokens
+
+        # Verify that the last message was trimmed
+        last_message = message_manager.history.messages[-1].message
+        assert isinstance(last_message, HumanMessage)
+        assert len(last_message.content) < 3000
+
+        # Verify that the total token count was updated
+        assert message_manager.history.total_tokens == sum(msg.metadata.input_tokens for msg in message_manager.history.messages)
+
+    class MockSystemPrompt(SystemPrompt):
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def get_system_message(self) -> BaseMessage:
+            return HumanMessage(content="Mock system message")
+
+    @patch('browser_use.agent.message_manager.service.SystemPrompt', new=MockSystemPrompt)
+    def test_cut_messages(self):
+        """
+        Test the cut_messages method of MessageManager.
+
+        This test ensures that:
+        1. Messages are cut when the total tokens exceed the maximum limit.
+        2. The last message is properly trimmed.
+        3. The total token count is updated correctly after cutting.
+        """
+        # Create a MessageManager instance with a small max_input_tokens
+        llm_mock = MagicMock()
+        message_manager = MessageManager(
+            llm=llm_mock,
+            task="Test task",
+            action_descriptions="Test descriptions",
+            system_prompt_class=self.MockSystemPrompt,
+            max_input_tokens=1000,
+            estimated_characters_per_token=3
+        )
+
+        # Add a large message that exceeds the token limit
+        large_message = HumanMessage(content="A" * 3000)  # This should be about 1000 tokens
+        message_manager._add_message_with_tokens(large_message)
+
+        # Verify that the total tokens exceed the limit
+        assert message_manager.history.total_tokens > message_manager.max_input_tokens
+
+        # Call cut_messages
+        message_manager.cut_messages()
+
+        # Verify that messages were cut
+        assert message_manager.history.total_tokens <= message_manager.max_input_tokens
+
+        # Verify that the last message was trimmed
+        last_message = message_manager.history.messages[-1].message
+        assert isinstance(last_message, HumanMessage)
+        assert len(last_message.content) < 3000
+
+        # Verify that the total token count was updated
+        assert message_manager.history.total_tokens == sum(msg.metadata.input_tokens for msg in message_manager.history.messages)
