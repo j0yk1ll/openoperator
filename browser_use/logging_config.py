@@ -7,15 +7,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def addLoggingLevel(levelName, levelNum, methodName=None):
+def add_logging_level(level_name, level_num, method_name=None):
 	"""
 	Comprehensively adds a new logging level to the `logging` module and the
 	currently configured logging class.
 
-	`levelName` becomes an attribute of the `logging` module with the value
-	`levelNum`. `methodName` becomes a convenience method for both `logging`
+	`level_name` becomes an attribute of the `logging` module with the value
+	`level_num`. `method_name` becomes a convenience method for both `logging`
 	itself and the class returned by `logging.getLoggerClass()` (usually just
-	`logging.Logger`). If `methodName` is not specified, `levelName.lower()` is
+	`logging.Logger`). If `method_name` is not specified, `level_name.lower()` is
 	used.
 
 	To avoid accidental clobberings of existing attributes, this method will
@@ -24,7 +24,7 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
 
 	Example
 	-------
-	>>> addLoggingLevel('TRACE', logging.DEBUG - 5)
+	>>> add_logging_level('TRACE', logging.DEBUG - 5)
 	>>> logging.getLogger(__name__).setLevel('TRACE')
 	>>> logging.getLogger(__name__).trace('that worked')
 	>>> logging.trace('so did this')
@@ -32,40 +32,40 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
 	5
 
 	"""
-	if not methodName:
-		methodName = levelName.lower()
+	if not method_name:
+		method_name = level_name.lower()
 
-	if hasattr(logging, levelName):
-		raise AttributeError('{} already defined in logging module'.format(levelName))
-	if hasattr(logging, methodName):
-		raise AttributeError('{} already defined in logging module'.format(methodName))
-	if hasattr(logging.getLoggerClass(), methodName):
-		raise AttributeError('{} already defined in logger class'.format(methodName))
+	if hasattr(logging, level_name):
+		raise AttributeError('{} already defined in logging module'.format(level_name))
+	if hasattr(logging, method_name):
+		raise AttributeError('{} already defined in logging module'.format(method_name))
+	if hasattr(logging.getLoggerClass(), method_name):
+		raise AttributeError('{} already defined in logger class'.format(method_name))
 
 	# This method was inspired by the answers to Stack Overflow post
 	# http://stackoverflow.com/q/2183233/2988730, especially
 	# http://stackoverflow.com/a/13638084/2988730
-	def logForLevel(self, message, *args, **kwargs):
-		if self.isEnabledFor(levelNum):
-			self._log(levelNum, message, args, **kwargs)
+	def log_for_level(self, message, *args, **kwargs):
+		if self.is_enabled_for(level_num):
+			self._log(level_num, message, args, **kwargs)
 
-	def logToRoot(message, *args, **kwargs):
-		logging.log(levelNum, message, *args, **kwargs)
+	def log_to_root(message, *args, **kwargs):
+		logging.log(level_num, message, *args, **kwargs)
 
-	logging.addLevelName(levelNum, levelName)
-	setattr(logging, levelName, levelNum)
-	setattr(logging.getLoggerClass(), methodName, logForLevel)
-	setattr(logging, methodName, logToRoot)
+	logging.addLevelName(level_num, level_name)
+	setattr(logging, level_name, level_num)
+	setattr(logging.getLoggerClass(), method_name, log_for_level)
+	setattr(logging, method_name, log_to_root)
 
 
 def setup_logging():
 	# Try to add RESULT level, but ignore if it already exists
 	try:
-		addLoggingLevel('RESULT', 35)  # This allows ERROR, FATAL and CRITICAL
+		add_logging_level('RESULT', 35)  # This allows ERROR, FATAL and CRITICAL
 	except AttributeError:
 		pass  # Level already exists, which is fine
 
-	log_type = os.getenv('BROWSER_USE_LOGGING_LEVEL', 'info').lower()
+	log_type = os.getenv('LOG_LEVEL', 'info').lower()
 
 	# Check if handlers are already set up
 	if logging.getLogger().hasHandlers():
@@ -77,14 +77,14 @@ def setup_logging():
 
 	class BrowserUseFormatter(logging.Formatter):
 		def format(self, record):
-			if record.name.startswith('browser_use.'):
+			if type(record.name) == str and record.name.startswith('browser_use.'):
 				record.name = record.name.split('.')[-2]
 			return super().format(record)
 
 	# Setup single handler for all loggers
 	console = logging.StreamHandler(sys.stdout)
 
-	# adittional setLevel here to filter logs
+	# additional setLevel here to filter logs
 	if log_type == 'result':
 		console.setLevel('RESULT')
 		console.setFormatter(BrowserUseFormatter('%(message)s'))
@@ -110,8 +110,44 @@ def setup_logging():
 
 	logger = logging.getLogger('browser_use')
 	logger.info('BrowserUse logging setup complete with level %s', log_type)
+
+	# Check if file logging is enabled
+	enable_file_logging = os.getenv('LOG_FILE', 'false').lower() == 'true'
+	if enable_file_logging:
+		log_file_path = os.getenv('LOG_FILE_PATH', 'browser_use.log')
+
+		# Ensure the directory exists
+		directory = os.path.dirname(log_file_path)
+		if directory and not os.path.exists(directory):
+			os.makedirs(directory, exist_ok=True)
+
+		# Create file handler
+		file_handler = logging.FileHandler(log_file_path)
+
+		# Set formatter for file with timestamp
+		file_formatter = logging.Formatter('%(asctime)s - %(levelname)-8s [%(name)s] %(message)s')
+		file_handler.setFormatter(file_formatter)
+
+		# Determine file log level from environment variable, default to DEBUG
+		file_level_str = os.getenv('LOG_FILE_LEVEL', 'debug').lower()
+		file_level = getattr(logging, file_level_str.upper(), logging.DEBUG)
+		file_handler.setLevel(file_level)
+
+		# Add file handler to root and browser_use_logger
+		root.addHandler(file_handler)
+		browser_use_logger.addHandler(file_handler)
+
+		# Update root level to the minimum of current level and file_level
+		new_root_level = min(root.level, file_level)
+		root.setLevel(new_root_level)
+
+		# Update browser_use_logger level to match new root level
+		browser_use_logger.setLevel(new_root_level)
+
+		logger.info('File logging enabled to %s with level %s', log_file_path, file_level_str)
+
 	# Silence third-party loggers
-	for logger in [
+	for logger_name in [
 		'WDM',
 		'httpx',
 		'selenium',
@@ -125,6 +161,6 @@ def setup_logging():
 		'anthropic._base_client',
 		'PIL.PngImagePlugin',
 	]:
-		third_party = logging.getLogger(logger)
+		third_party = logging.getLogger(logger_name)
 		third_party.setLevel(logging.ERROR)
 		third_party.propagate = False
