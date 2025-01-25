@@ -23,7 +23,12 @@ from playwright.async_api import (
 	Page,
 )
 
-from browser_use.browser.views import BrowserError, BrowserState, TabInfo, URLNotAllowedError
+from browser_use.browser.views import (
+	BrowserError,
+	BrowserState,
+	TabInfo,
+	URLNotAllowedError,
+)
 from browser_use.dom.service import DomService
 from browser_use.dom.views import DOMElementNode, SelectorMap
 from browser_use.utils import time_execution_sync
@@ -45,54 +50,58 @@ class BrowserContextConfig:
 	Configuration for the BrowserContext.
 
 	Default values:
-		cookies_file: None
-			Path to cookies file for persistence
+	        cookies_file: None
+	                Path to cookies file for persistence
 
 	        disable_security: False
 	                Disable browser security features
 
-		minimum_wait_page_load_time: 0.5
-			Minimum time to wait before getting page state for LLM input
+	        minimum_wait_page_load_time: 0.5
+	                Minimum time to wait before getting page state for LLM input
 
 	        wait_for_network_idle_page_load_time: 1.0
 	                Time to wait for network requests to finish before getting page state.
 	                Lower values may result in incomplete page loads.
 
-		maximum_wait_page_load_time: 5.0
-			Maximum time to wait for page load before proceeding anyway
+	        maximum_wait_page_load_time: 5.0
+	                Maximum time to wait for page load before proceeding anyway
 
-		wait_between_actions: 1.0
-			Time to wait between multiple per step actions
+	        wait_between_actions: 1.0
+	                Time to wait between multiple per step actions
 
-		browser_window_size: {
-				'width': 1280,
-				'height': 1100,
-			}
-			Default browser window size
+	        browser_window_size: {
+	                        'width': 1280,
+	                        'height': 1100,
+	                }
+	                Default browser window size
 
-		no_viewport: False
-			Disable viewport
-		save_recording_path: None
-			Path to save video recordings
+	        no_viewport: False
+	                Disable viewport
 
-		trace_path: None
-			Path to save trace files. It will auto name the file with the TRACE_PATH/{context_id}.zip
+	        save_recording_path: None
+	                Path to save video recordings
 
-		locale: None
-			Specify user locale, for example en-GB, de-DE, etc. Locale will affect navigator.language value, Accept-Language request header value as well as number and date formatting rules. If not provided, defaults to the system default locale.
+	        trace_path: None
+	                Path to save trace files. It will auto name the file with the TRACE_PATH/{context_id}.zip
 
-		user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
-			custom user agent to use.
+	        locale: None
+	                Specify user locale, for example en-GB, de-DE, etc. Locale will affect navigator.language value, Accept-Language request header value as well as number and date formatting rules. If not provided, defaults to the system default locale.
 
-		highlight_elements: True
-			Highlight elements in the DOM on the screen
+	        user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
+	                custom user agent to use.
 
-		viewport_expansion: 500
-			Viewport expansion in pixels. This amount will increase the number of elements which are included in the state what the LLM will see. If set to -1, all elements will be included (this leads to high token usage). If set to 0, only the elements which are visible in the viewport will be included.
+	        highlight_elements: True
+	                Highlight elements in the DOM on the screen
 
-		allowed_domains: None
-			List of allowed domains that can be accessed. If None, all domains are allowed.
-			Example: ['example.com', 'api.example.com']
+	        viewport_expansion: 500
+	                Viewport expansion in pixels. This amount will increase the number of elements which are included in the state what the LLM will see. If set to -1, all elements will be included (this leads to high token usage). If set to 0, only the elements which are visible in the viewport will be included.
+
+	        allowed_domains: None
+	                List of allowed domains that can be accessed. If None, all domains are allowed.
+	                Example: ['example.com', 'api.example.com']
+
+	        save_downloads_path: None
+	                Path to save downloads to
 	"""
 
 	cookies_file: str | None = None
@@ -106,6 +115,7 @@ class BrowserContextConfig:
 	browser_window_size: BrowserContextWindowSize = field(default_factory=lambda: {'width': 1280, 'height': 1100})
 	no_viewport: Optional[bool] = None
 
+	save_downloads_path: str | None = None
 	save_recording_path: str | None = None
 	trace_path: str | None = None
 	locale: str | None = None
@@ -260,6 +270,7 @@ class BrowserContext:
 				record_video_dir=self.config.save_recording_path,
 				record_video_size=self.config.browser_window_size,
 				locale=self.config.locale,
+				accept_downloads=bool(self.config.save_downloads_path),
 			)
 
 		if self.config.trace_path:
@@ -275,38 +286,38 @@ class BrowserContext:
 		# Expose anti-detection scripts
 		await context.add_init_script(
 			"""
-			// Webdriver property
-			Object.defineProperty(navigator, 'webdriver', {
-				get: () => undefined
-			});
+            // Webdriver property
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            });
 
-			// Languages
-			Object.defineProperty(navigator, 'languages', {
-				get: () => ['en-US']
-			});
+            // Languages
+            Object.defineProperty(navigator, 'languages', {
+                get: () => ['en-US']
+            });
 
-			// Plugins
-			Object.defineProperty(navigator, 'plugins', {
-				get: () => [1, 2, 3, 4, 5]
-			});
+            // Plugins
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [1, 2, 3, 4, 5]
+            });
 
-			// Chrome runtime
-			window.chrome = { runtime: {} };
+            // Chrome runtime
+            window.chrome = { runtime: {} };
 
-			// Permissions
-			const originalQuery = window.navigator.permissions.query;
-			window.navigator.permissions.query = (parameters) => (
-				parameters.name === 'notifications' ?
-					Promise.resolve({ state: Notification.permission }) :
-					originalQuery(parameters)
-			);
-			(function () {
-				const originalAttachShadow = Element.prototype.attachShadow;
-				Element.prototype.attachShadow = function attachShadow(options) {
-					return originalAttachShadow.call(this, { ...options, mode: "open" });
-				};
-			})();
-			"""
+            // Permissions
+            const originalQuery = window.navigator.permissions.query;
+            window.navigator.permissions.query = (parameters) => (
+                parameters.name === 'notifications' ?
+                    Promise.resolve({ state: Notification.permission }) :
+                    originalQuery(parameters)
+            );
+            (function () {
+                const originalAttachShadow = Element.prototype.attachShadow;
+                Element.prototype.attachShadow = function attachShadow(options) {
+                    return originalAttachShadow.call(this, { ...options, mode: "open" });
+                };
+            })();
+            """
 		)
 
 		return context
@@ -925,41 +936,66 @@ class BrowserContext:
 		except Exception as e:
 			raise Exception(f'Failed to input text into element: {repr(element_node)}. Error: {str(e)}')
 
-	async def _click_element_node(self, element_node: DOMElementNode):
+	async def _click_element_node(self, element_node: DOMElementNode) -> Optional[str]:
 		"""
-		Optimized method to click an element using xpath.
+		Click an element using a located DOMElementNode. Detects if a download
+		is triggered. If it is, saves the download to the configured path and return the download path;
+		otherwise, waits for navigation or load state changes.
 		"""
 		page = await self.get_current_page()
 
 		try:
-			# Highlight before clicking
+			# Highlight the element before clicking (optional)
 			if element_node.highlight_index is not None:
 				await self._update_state(focus_element=element_node.highlight_index)
 
 			element = await self.get_locate_element(element_node)
 
 			if element is None:
-				raise Exception(f'Element: {repr(element_node)} not found')
+				raise Exception(f'Element not found: {repr(element_node)}')
 
-			# await element.scroll_into_view_if_needed()
+			async def perform_click(click_func):
+				"""Performs the actual click, handling both download
+				and navigation scenarios."""
+				if self.config.save_downloads_path:
+					try:
+						# Try short-timeout expect_download to detect a file download has been been triggered
+						async with page.expect_download(timeout=5000) as download_info:
+							await click_func()
+						download = await download_info.value
 
+						# If the download succeeds, save to disk
+						download_path = os.path.join(self.config.save_downloads_path, download.suggested_filename)
+						await download.save_as(download_path)
+						logger.debug(f'Download triggered. Saved file to: {download_path}')
+
+						return download_path
+
+					except TimeoutError:
+						# If no download is triggered, treat as normal click
+						logger.debug('No download triggered within timeout. Checking navigation...')
+						await page.wait_for_load_state()
+						await self._check_and_handle_navigation(page)
+				else:
+					# Standard click logic if no download is expected
+					await click_func()
+					await page.wait_for_load_state()
+					await self._check_and_handle_navigation(page)
+
+			# First attempt: direct Playwright click
 			try:
-				await element.click(timeout=1500)
-				await page.wait_for_load_state()
-				# Check if navigation occurred and if the new URL is allowed
-				await self._check_and_handle_navigation(page)
+				return await perform_click(lambda: element.click(timeout=1500))
 			except URLNotAllowedError as e:
+				# Rethrow custom navigation-block errors, if any
 				raise e
 			except Exception:
+				# Fallback: JavaScript click if direct click fails
 				try:
-					await page.evaluate('(el) => el.click()', element)
-					await page.wait_for_load_state()
-					# Check if navigation occurred and if the new URL is allowed
-					await self._check_and_handle_navigation(page)
+					return await perform_click(lambda: page.evaluate('(el) => el.click()', element))
 				except URLNotAllowedError as e:
 					raise e
 				except Exception as e:
-					raise Exception(f'Failed to click element: {str(e)}')
+					raise Exception(f'Failed to click element via JS fallback: {str(e)}')
 
 		except URLNotAllowedError as e:
 			raise e

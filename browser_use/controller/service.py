@@ -3,7 +3,6 @@ import json
 import logging
 
 from main_content_extractor import MainContentExtractor
-from playwright.async_api import Page
 
 from browser_use.agent.views import ActionModel, ActionResult
 from browser_use.browser.context import BrowserContext
@@ -51,7 +50,11 @@ class Controller:
 			logger.info(msg)
 			return ActionResult(extracted_content=msg, include_in_memory=True)
 
-		@self.registry.action('Navigate to URL in the current tab', param_model=GoToUrlAction, requires_browser=True)
+		@self.registry.action(
+			'Navigate to URL in the current tab',
+			param_model=GoToUrlAction,
+			requires_browser=True,
+		)
 		async def go_to_url(params: GoToUrlAction, browser: BrowserContext):
 			page = await browser.get_current_page()
 			await page.goto(params.url)
@@ -88,8 +91,12 @@ class Controller:
 			msg = None
 
 			try:
-				await browser._click_element_node(element_node)
-				msg = f'🖱️  Clicked button with index {params.index}: {element_node.get_all_text_till_next_clickable_element(max_depth=2)}'
+				download_path = await browser._click_element_node(element_node)
+
+				if download_path:
+					msg = f'💾  Downloaded file to {download_path}'
+				else:
+					msg = f'🖱️  Clicked button with index {params.index}: {element_node.get_all_text_till_next_clickable_element(max_depth=2)}'
 
 				logger.info(msg)
 				logger.debug(f'Element xpath: {element_node.xpath}')
@@ -271,22 +278,22 @@ class Controller:
 					try:
 						options = await frame.evaluate(
 							"""
-							(xpath) => {
-								const select = document.evaluate(xpath, document, null,
-									XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-								if (!select) return null;
+                            (xpath) => {
+                                const select = document.evaluate(xpath, document, null,
+                                    XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                                if (!select) return null;
 
-								return {
-									options: Array.from(select.options).map(opt => ({
-										text: opt.text, //do not trim, because we are doing exact match in select_dropdown_option
-										value: opt.value,
-										index: opt.index
-									})),
-									id: select.id,
-									name: select.name
-								};
-							}
-						""",
+                                return {
+                                    options: Array.from(select.options).map(opt => ({
+                                        text: opt.text, //do not trim, because we are doing exact match in select_dropdown_option
+                                        value: opt.value,
+                                        index: opt.index
+                                    })),
+                                    id: select.id,
+                                    name: select.name
+                                };
+                            }
+                        """,
 							dom_element.xpath,
 						)
 
@@ -357,31 +364,31 @@ class Controller:
 
 						# First verify we can find the dropdown in this frame
 						find_dropdown_js = """
-							(xpath) => {
-								try {
-									const select = document.evaluate(xpath, document, null,
-										XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-									if (!select) return null;
-									if (select.tagName.toLowerCase() !== 'select') {
-										return {
-											error: `Found element but it's a ${select.tagName}, not a SELECT`,
-											found: false
-										};
-									}
-									return {
-										id: select.id,
-										name: select.name,
-										found: true,
-										tagName: select.tagName,
-										optionCount: select.options.length,
-										currentValue: select.value,
-										availableOptions: Array.from(select.options).map(o => o.text.trim())
-									};
-								} catch (e) {
-									return {error: e.toString(), found: false};
-								}
-							}
-						"""
+                            (xpath) => {
+                                try {
+                                    const select = document.evaluate(xpath, document, null,
+                                        XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                                    if (!select) return null;
+                                    if (select.tagName.toLowerCase() !== 'select') {
+                                        return {
+                                            error: `Found element but it's a ${select.tagName}, not a SELECT`,
+                                            found: false
+                                        };
+                                    }
+                                    return {
+                                        id: select.id,
+                                        name: select.name,
+                                        found: true,
+                                        tagName: select.tagName,
+                                        optionCount: select.options.length,
+                                        currentValue: select.value,
+                                        availableOptions: Array.from(select.options).map(o => o.text.trim())
+                                    };
+                                } catch (e) {
+                                    return {error: e.toString(), found: false};
+                                }
+                            }
+                        """
 
 						dropdown_info = await frame.evaluate(find_dropdown_js, dom_element.xpath)
 
@@ -429,7 +436,10 @@ class Controller:
 
 	@time_execution_async('--multi-act')
 	async def multi_act(
-		self, actions: list[ActionModel], browser_context: BrowserContext, check_for_new_elements: bool = True
+		self,
+		actions: list[ActionModel],
+		browser_context: BrowserContext,
+		check_for_new_elements: bool = True,
 	) -> list[ActionResult]:
 		"""Execute multiple actions"""
 		results = []
