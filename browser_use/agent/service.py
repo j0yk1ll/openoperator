@@ -387,27 +387,35 @@ class Agent:
 
         self.history.history.append(history_item)
 
-    @time_execution_async("--get_next_action")
-    async def get_next_action(self, input_messages: list[BaseMessage]) -> AgentOutput:
-        """Get the next action from the LLM based on current state"""
-        if self.tool_calling_method is None:
-            structured_llm = self.llm.with_structured_output(
-                self.AgentOutput, include_raw=True
-            )
-        else:
-            structured_llm = self.llm.with_structured_output(
-                self.AgentOutput, include_raw=True, method=self.tool_calling_method
-            )
+	@time_execution_async('--get_next_action')
+	async def get_next_action(self, input_messages: list[BaseMessage]) -> AgentOutput:
+		"""Get next action from LLM based on current state"""
 
-        # TODO add retry mechanism in case of ValueError
-        response: dict[str, Any] = await structured_llm.ainvoke(input_messages)  # type: ignore
+		if self.model_name == 'deepseek-reasoner':
+			converted_input_messages = self.message_manager.convert_messages_for_non_function_calling_models(input_messages)
+			merged_input_messages = self.message_manager.merge_successive_human_messages(converted_input_messages)
+			output = self.llm.invoke(merged_input_messages)
+			# TODO: currently invoke does not return reasoning_content, we should override invoke
+			try:
+				parsed_json = self.message_manager.extract_json_from_model_output(output.content)
+				parsed = self.AgentOutput(**parsed_json)
+			except (ValueError, ValidationError) as e:
+				logger.warning(f'Failed to parse model output: {str(e)}')
+				raise ValueError('Could not parse response.')
+		elif self.tool_calling_method is None:
+			structured_llm = self.llm.with_structured_output(self.AgentOutput, include_raw=True)
+			response: dict[str, Any] = await structured_llm.ainvoke(input_messages)  # type: ignore
+			parsed: AgentOutput | None = response['parsed']
+		else:
+			structured_llm = self.llm.with_structured_output(self.AgentOutput, include_raw=True, method=self.tool_calling_method)
+			response: dict[str, Any] = await structured_llm.ainvoke(input_messages)  # type: ignore
+			parsed: AgentOutput | None = response['parsed']
 
-        parsed: AgentOutput | None = response["parsed"]
-        if parsed is None:
-            logger.error(
-                f"Could not parse response {response['raw']}: {response['parsing_error']}"
-            )
-            raise ValueError("Could not parse response.")
+		if parsed is None:
+			logger.error(
+				f"Could not parse response {response['raw']}: {response['parsing_error']}"
+			)
+			raise ValueError('Could not parse response.')
 
         # Cut the number of actions to max_actions_per_step
         parsed.action = parsed.action[: self.max_actions_per_step]
