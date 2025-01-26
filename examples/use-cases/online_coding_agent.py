@@ -1,13 +1,9 @@
-import os
-import sys
+import asyncio
 
 from langchain_openai import ChatOpenAI
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from openoperator import Agent, Browser
 
-import asyncio
-
-from browser_use import Agent, Browser, Controller
 
 async def main():
     browser = Browser()
@@ -34,5 +30,6 @@ async def main():
         await agent1.run()
         await executor.run()
         await coder.run()
+
 
 asyncio.run(main())

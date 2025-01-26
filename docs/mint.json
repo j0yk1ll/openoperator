@@ -1,20 +1,11 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Browser Use",
-  "logo": {
-    "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg",
-    "href": "https://browser-use.com"
-  },
+  "name": "OpenOperator",
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#F97316",
-    "light": "#FFF7ED",
-    "dark": "#C2410C",
-    "anchors": {
-      "from": "#F97316",
-      "to": "#FB923C"
-    }
+    "primary": "#252529",
+    "light": "#DADAED",
+    "dark": "#252529"
   },
   "feedback": {
     "thumbsRating": true,
@@ -24,16 +15,16 @@
   "topbarLinks": [
     {
       "name": "Github",
-      "url": "https://github.com/browser-use/browser-use"
+      "url": "https://github.com/j0yk1ll/openoperator"
     },
     {
       "name": "Twitter",
-      "url": "https://x.com/gregpr07"
+      "url": "https://x.com/j0yk1ll"
     }
   ],
   "topbarCtaButton": {
     "name": "Join Discord",
-    "url": "https://link.browser-use.com/discord"
+    "url": "https://discord.gg/Jdx62Bjj8v"
   },
   "navigation": [
     {
@@ -59,14 +50,13 @@
       "group": "Development",
       "pages": [
         "development/local-setup",
-        "development/telemetry",
-        "development/roadmap"
+        "development/contribution-guide",
+        "development/telemetry"
       ]
     }
   ],
   "footerSocials": {
-    "x": "https://x.com/gregpr07",
-    "github": "https://github.com/browser-use/browser-use",
-    "linkedin": "https://linkedin.com/company/browser-use"
+    "x": "https://x.com/j0yk1ll",
+    "github": "https://github.com/j0yk1ll/openoperator"
   }
 }

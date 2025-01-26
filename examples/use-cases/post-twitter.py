@@ -1,8 +1,8 @@
 """
-X Posting Template using browser-use
+X Posting Template using openoperator
 ----------------------------------------
 
-This template allows you to automate posting on X using browser-use.
+This template allows you to automate posting on X using openoperator.
 It supports:
 - Posting new tweets
 - Tagging users
@@ -17,20 +17,17 @@ reply_url="XXXXX"
 Any issues, contact me on X @defichemist95
 """
 
+import asyncio
 import os
-import sys
-from typing import Optional
 from dataclasses import dataclass
+
 from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+
+from openoperator import Agent, Controller
+from openoperator.browser.browser import Browser, BrowserConfig
 
 load_dotenv()
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import asyncio
-from langchain_openai import ChatOpenAI
-from browser_use.browser.browser import Browser, BrowserConfig
-from browser_use import Agent, Controller
 
 
 # ============ Configuration Section ============
@@ -44,23 +41,22 @@ class TwitterConfig:
     message: str
     reply_url: str
     headless: bool = False
-    model: str = "gpt-4o-mini"
-    base_url: str = "https://x.com/home"
+    model: str = 'gpt-4o-mini'
+    base_url: str = 'https://x.com/home'
 
 
 # Customize these settings
 config = TwitterConfig(
-    openai_api_key=os.getenv("OPENAI_API_KEY"),
-    chrome_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", # This is for MacOS (Chrome)
-    target_user="XXXXX",
-    message="XXXXX",
-    reply_url="XXXXX",
+    openai_api_key=os.getenv('OPENAI_API_KEY'),
+    chrome_path='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',  # This is for MacOS (Chrome)
+    target_user='XXXXX',
+    message='XXXXX',
+    reply_url='XXXXX',
     headless=False,
 )
 
 
 def create_twitter_agent(config: TwitterConfig) -> Agent:
-
     llm = ChatOpenAI(model=config.model, api_key=config.openai_api_key)
 
     browser = Browser(
@@ -73,7 +69,7 @@ def create_twitter_agent(config: TwitterConfig) -> Agent:
     controller = Controller()
 
     # Construct the full message with tag
-    full_message = f"@{config.target_user} {config.message}"
+    full_message = f'@{config.target_user} {config.message}'
 
     # Create the agent with detailed instructions
     return Agent(
@@ -105,18 +101,18 @@ def create_twitter_agent(config: TwitterConfig) -> Agent:
 
 
 async def post_tweet(agent: Agent):
-
     try:
         await agent.run(max_steps=100)
         agent.create_history_gif()
-        print("Tweet posted successfully!")
+        print('Tweet posted successfully!')
     except Exception as e:
-        print(f"Error posting tweet: {str(e)}")
+        print(f'Error posting tweet: {str(e)}')
 
 
 def main():
     agent = create_twitter_agent(config)
     asyncio.run(post_tweet(agent))
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     main()

@@ -6,12 +6,12 @@ icon: "gear"
 
 ## Overview
 
-The `Agent` class is the core component of Browser Use that handles browser automation. Here are the main configuration options you can use when initializing an agent.
+The `Agent` class is the core component of OpenOperator that handles browser automation. Here are the main configuration options you can use when initializing an agent.
 
 ## Basic Settings
 
 ```python
-from browser_use import Agent
+from openoperator import Agent
 from langchain_openai import ChatOpenAI
 
 agent = Agent(
@@ -61,10 +61,10 @@ You can configure how the agent interacts with the browser. To see more `Browser
 
 ### Reuse Existing Browser
 
-`browser`: A Browser Use Browser instance. When provided, the agent will reuse this browser instance and automatically create new contexts for each `run()`.
+`browser`: A OpenOperator Browser instance. When provided, the agent will reuse this browser instance and automatically create new contexts for each `run()`.
 
 ```python
-from browser_use import Agent, Browser
+from openoperator import Agent, Browser
 from playwright.async_api import BrowserContext
 
 # Reuse existing browser
@@ -90,7 +90,7 @@ await browser.close()
 `browser_context`: A Playwright browser context. Useful for maintaining persistent sessions. See <a href="/customize/persistent-browser">Persistent Browser</a> for more details.
 
 ```python
-from browser_use import Agent, Browser
+from openoperator import Agent, Browser
 from playwright.async_api import BrowserContext
 
 # Use specific browser context (preferred method)
@@ -128,7 +128,7 @@ documentation](https://playwright.dev/docs/api/class-browsercontext).
 
 The agent is executed using the async `run()` method:
 
-- `max_steps` (default: `100`)  
+- `max_steps` (default: `100`)
   Maximum number of steps the agent can take during execution. This prevents infinite loops and helps control execution time.
 
 ## Agent History
@@ -159,14 +159,14 @@ The `AgentHistoryList` provides many helper methods to analyze the execution:
 <Note>
   For a complete list of helper methods and detailed history analysis
   capabilities, refer to the [AgentHistoryList source
-  code](https://github.com/browser-use/browser-use/blob/main/browser_use/agent/views.py#L111).
+  code](https://github.com/j0yk1ll/openoperator/blob/main/openoperator/agent/views.py#L111).
 </Note>
 
 
 
 ## Run initial actions without LLM
-With [this example](https://github.com/browser-use/browser-use/blob/main/examples/features/initial_actions.py) you can run initial actions without the LLM.
-Specify the action as a dictionary where the key is the action name and the value is the action parameters. You can find all our actions in the [Controller](https://github.com/browser-use/browser-use/blob/main/browser_use/controller/service.py) source code.
+With [this example](https://github.com/j0yk1ll/openoperator/blob/main/examples/features/initial_actions.py) you can run initial actions without the LLM.
+Specify the action as a dictionary where the key is the action name and the value is the action parameters. You can find all our actions in the [Controller](https://github.com/j0yk1ll/openoperator/blob/main/openoperator/controller/service.py) source code.
 ```python
 
 initial_actions = [
@@ -181,4 +181,3 @@ agent = Agent(
 	llm=llm,
 )
 ```
-

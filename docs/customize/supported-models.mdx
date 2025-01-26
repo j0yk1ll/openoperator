@@ -1,16 +1,16 @@
 ---
 title: "Supported Models"
-description: "Guide to using different LangChain chat models with Browser Use"
+description: "Guide to using different LangChain chat models with OpenOperator"
 icon: "robot"
 ---
 
 ## Overview
 
-Browser Use supports various LangChain chat models. Here's how to configure and use the most popular ones. The full list is available in the [LangChain documentation](https://python.langchain.com/docs/integrations/chat/).
+OpenOperator supports various LangChain chat models. Here's how to configure and use the most popular ones. The full list is available in the [LangChain documentation](https://python.langchain.com/docs/integrations/chat/).
 
 ## Model Recommendations
 
-We have yet to test performance across all models. Currently, we achieve the best results using GPT-4o with an 89% accuracy on the [WebVoyager Dataset](https://browser-use.com/posts/sota-technical-report). DeepSeek-V3 is 30 times cheaper than GPT-4o. Gemini-2.0-exp is also gaining popularity in the community because it is currently free.
+We have yet to test performance across all models.
 We also support local models, like Qwen 2.5, but be aware that small models often return the wrong output structure-which lead to parsing errors. We believe that local models will improve significantly this year.
 
 
@@ -29,7 +29,7 @@ OpenAI's GPT-4o models are recommended for best performance.
 
 ```python
 from langchain_openai import ChatOpenAI
-from browser_use import Agent
+from openoperator import Agent
 
 # Initialize the model
 llm = ChatOpenAI(
@@ -55,7 +55,7 @@ OPENAI_API_KEY=
 
 ```python
 from langchain_anthropic import ChatAnthropic
-from browser_use import Agent
+from openoperator import Agent
 
 # Initialize the model
 llm = ChatAnthropic(
@@ -81,7 +81,7 @@ ANTHROPIC_API_KEY=
 
 ```python
 from langchain_openai import AzureChatOpenAI
-from browser_use import Agent
+from openoperator import Agent
 from pydantic import SecretStr
 import os
 
@@ -112,12 +112,12 @@ AZURE_OPENAI_KEY=
 
 ```python
 from langchain_google_genai import ChatGoogleGenerativeAI
-from browser_use import Agent
+from openoperator import Agent
 from pydantic import SecretStr
 import os
 
 # Initialize the model
-llm = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp', api_key=SecretStr(api_key))
+llm = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
 
 # Create agent with the model
 agent = Agent(
@@ -134,17 +134,17 @@ GEMINI_API_KEY=
 
 
 ### DeepSeek-V3
-The community likes DeepSeek-V3 for its low price, no rate limits, open-source nature, and good performance. 
-The example is available [here](https://github.com/browser-use/browser-use/blob/main/examples/models/deepseek.py).
+The community likes DeepSeek-V3 for its low price, no rate limits, open-source nature, and good performance.
+The example is available [here](https://github.com/j0yk1ll/openoperator/blob/main/examples/models/deepseek.py).
 
 ```python
 from langchain_openai import ChatOpenAI
-from browser_use import Agent
+from openoperator import Agent
 from pydantic import SecretStr
 
 
 # Initialize the model
-llm=ChatOpenAI(base_url='https://api.deepseek.com/v1', model='deepseek-chat', api_key=SecretStr(api_key))
+llm=ChatOpenAI(base_url='https://api.deepseek.com/v1', model='deepseek-chat')
 
 # Create agent with the model
 agent = Agent(
@@ -162,16 +162,16 @@ DEEPSEEK_API_KEY=
 
 ### DeepSeek-R1
 We support DeepSeek-R1. Its not fully tested yet, more and more functionality will be added, like e.g. the output of it'sreasoning content.
-The example is available [here](https://github.com/browser-use/browser-use/blob/main/examples/models/deepseek-r1.py).
+The example is available [here](https://github.com/j0yk1ll/openoperator/blob/main/examples/models/deepseek-r1.py).
 It does not support vision. The model is open-source so you could also use it with Ollama, but we have not tested it.
 ```python
 from langchain_openai import ChatOpenAI
-from browser_use import Agent
+from openoperator import Agent
 from pydantic import SecretStr
 
 
 # Initialize the model
-llm=ChatOpenAI(base_url='https://api.deepseek.com/v1', model='deepseek-reasoner', api_key=SecretStr(api_key))
+llm=ChatOpenAI(base_url='https://api.deepseek.com/v1', model='deepseek-reasoner')
 
 # Create agent with the model
 agent = Agent(
@@ -188,7 +188,7 @@ DEEPSEEK_API_KEY=
 ```
 
 ### Ollama
-Many users asked for local models. Here they are. 
+Many users asked for local models. Here they are.
 
 1. Download Ollama from [here](https://ollama.ai/download)
 2. Run `ollama pull model_name`. Pick a model which supports tool-calling from [here](https://ollama.com/search?c=tools)
@@ -196,7 +196,7 @@ Many users asked for local models. Here they are.
 
 ```python
 from langchain_ollama import ChatOllama
-from browser_use import Agent
+from openoperator import Agent
 from pydantic import SecretStr
 
 

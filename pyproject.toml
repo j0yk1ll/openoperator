@@ -1,10 +1,10 @@
 [project]
-name = "browser-use"
-description = "Make websites accessible for AI agents"
+name = "openoperator"
+description = "Operate any browser, desktop, device or robot."
 authors = [
-    { name = "Gregor Zunic" }
+    { name = "Kevin Raetz" }
 ]
-version = "0.1.29"
+version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
@@ -38,18 +38,30 @@ dev = [
     "hatch>=1.13.0",
     "build>=1.2.2",
     "pytest>=8.3.3",
-    "pytest-asyncio>=0.24.0"
+    "pytest-asyncio>=0.24.0",
+    "black>=24.10.0",
+]
+examples = [
+    "discord>=2.3.2",
+    "pypdf2>=3.0.1",
 ]
 
 [tool.ruff]
 line-length = 130
+extend-ignore = ["E501"]
+
+[tool.ruff.lint]
 select = ["E", "F", "I"]
-fix = true
 
 [tool.ruff.format]
 quote-style = "single"
 indent-style = "tab"
 docstring-code-format = true
+
+[tool.black]
+line-length = 130
+target-version = ["py311"]   # or whichever versions you support
+skip-string-normalization = true
 
 [build-system]
 requires = ["hatchling"]

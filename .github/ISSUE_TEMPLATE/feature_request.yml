@@ -1,5 +1,5 @@
 name: 💡 Feature Request
-description: Suggest a new feature for browser-use
+description: Suggest a new feature for openoperator
 labels: ["enhancement"]
 body:
   - type: markdown
@@ -40,4 +40,4 @@ body:
       placeholder: |
         - Example use cases
         - Screenshots or mockups
-        - Related issues or discussions 
+        - Related issues or discussions

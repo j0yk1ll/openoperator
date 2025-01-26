@@ -9,7 +9,7 @@ icon: "function"
 Functions can be either `sync` or `async`. Keep them focused and single-purpose.
 
 ```python
-from browser_use import Controller, ActionResult
+from openoperator import Controller, ActionResult
 # Initialize the controller
 controller = Controller()
 
@@ -44,7 +44,7 @@ agent = Agent(
 For actions that need browser access, use the `requires_browser=True` parameter:
 
 ```python
-from browser_use import Browser, Controller, ActionResult
+from openoperator import Browser, Controller, ActionResult
 
 controller = Controller()
 @controller.action('Open website', requires_browser=True)
@@ -61,7 +61,7 @@ For complex actions, you can define parameter schemas using Pydantic models:
 ```python
 from pydantic import BaseModel
 from typing import Optional
-from browser_use import Controller, ActionResult, Browser
+from openoperator import Controller, ActionResult, Browser
 
 controller = Controller()
 
@@ -125,5 +125,4 @@ controller = Controller(exclude_actions=['open_tab', 'google_search'])
 ```
 
 
-For more examples like file upload or notifications, visit [examples/custom-functions](https://github.com/browser-use/browser-use/tree/main/examples/custom-functions).
-
+For more examples like file upload or notifications, visit [examples/custom-functions](https://github.com/j0yk1ll/openoperator/tree/main/examples/custom-functions).

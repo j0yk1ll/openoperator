@@ -1,6 +1,6 @@
 # Docs
 
-The official documentation for Browser Use. The docs are published to [Browser Use Docs](https://docs.browser-use.com).
+The official documentation for OpenOperator. The docs are published to [OpenOperator Docs](https://openoperator.co).
 
 ### Development
 

@@ -1,5 +1,5 @@
 name: 🐛 Bug Report
-description: Report a bug in browser-use
+description: Report a bug
 labels: ["bug", "triage"]
 body:
   - type: markdown
@@ -22,7 +22,7 @@ body:
       label: Reproduction Steps
       description: Steps to reproduce the behavior
       placeholder: |
-        1. Install browser-use...
+        1. Install openoperator...
         2. Run the following task...
         3. See error...
     validations:
@@ -41,7 +41,7 @@ body:
     id: version
     attributes:
       label: Version
-      description: What version of browser-use are you using? (Run `uv pip show browser-use` to find out)
+      description: What version of openoperator are you using? (Run `uv pip show openoperator` to find out)
       placeholder: "e.g., pip 0.1.26, or git main branch"
     validations:
       required: true

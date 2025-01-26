@@ -1,14 +1,14 @@
 ---
 title: "Quickstart"
-description: "Start using Browser Use with this quickstart guide"
+description: "Start using OpenOperator with this quickstart guide"
 icon: "rocket"
 ---
 
-{/* You can install Browser Use from PyPI or clone it from Github. */}
+{/* You can install OpenOperator from PyPI or clone it from Github. */}
 
 ## Prepare the environment
 
-Browser Use requires Python 3.11 or higher.
+OpenOperator requires Python 3.11 or higher.
 
 First, we recommend using [uv](https://docs.astral.sh/uv/) to setup the Python environment.
 
@@ -29,7 +29,7 @@ source .venv/bin/activate
 Install the dependencies:
 
 ```bash
-uv pip install browser-use
+uv pip install openoperator
 ```
 
 Then install playwright:
@@ -44,7 +44,7 @@ Then you can use the agent as follows:
 
 ```python agent.py
 from langchain_openai import ChatOpenAI
-from browser_use import Agent
+from openoperator import Agent
 from dotenv import load_dotenv
 load_dotenv()
 
