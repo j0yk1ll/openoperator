@@ -63,13 +63,23 @@ Follow these steps to contribute to **OpenOperator**:
      pytest
      ```
 
-7. **Commit Your Changes**
+7. **Ensure standardized formatting**
+   - Format with black
+   ```
+   uv run black .
+   ```
+   - Verify with ruff
+   ```
+   uv run ruff check .
+   ```
+
+8. **Commit Your Changes**
    - Write clear and concise commit messages:
      ```bash
-     git commit -m "Add: New feature or fix bug"
+     git commit -m "added new feature or fix bug"
      ```
 
-8. **Push Your Branch**
+9. **Push Your Branch**
    - Push your changes to your fork:
      ```bash
      git push origin my-feature-branch
