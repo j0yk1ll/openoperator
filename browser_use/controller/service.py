@@ -4,7 +4,6 @@ import logging
 from typing import Optional, Type
 
 from main_content_extractor import MainContentExtractor
-from playwright.async_api import Page
 from pydantic import BaseModel
 
 from browser_use.agent.views import ActionModel, ActionResult
@@ -32,15 +31,15 @@ logger = logging.getLogger(__name__)
 
 
 class Controller:
-	def __init__(
-		self,
-		exclude_actions: list[str] = [],
-		output_model: Optional[Type[BaseModel]] = None,
-	):
-		self.exclude_actions = exclude_actions
-		self.output_model = output_model
-		self.registry = Registry(exclude_actions)
-		self._register_default_actions()
+    def __init__(
+        self,
+        exclude_actions: list[str] = [],
+        output_model: Optional[Type[BaseModel]] = None,
+    ):
+        self.exclude_actions = exclude_actions
+        self.output_model = output_model
+        self.registry = Registry(exclude_actions)
+        self._register_default_actions()
 
     def _register_default_actions(self):
         """Register all default browser actions"""

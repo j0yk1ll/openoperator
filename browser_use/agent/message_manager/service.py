@@ -100,6 +100,13 @@ class MessageManager:
 		content = f'Your ultimate task is: {task}. If you achieved your ultimate task, stop everything and use the done action in the next step to complete the task. If not, continue as usual.'
 		return HumanMessage(content=content)
 
+	def add_new_task(self, new_task: str) -> None:
+		content = (
+			f'Your new ultimate task is: {new_task}. Take the previous context into account and finish your new ultimate task. '
+		)
+		msg = HumanMessage(content=content)
+		self._add_message_with_tokens(msg)
+
 	def add_state_message(
 		self,
 		state: BrowserState,
