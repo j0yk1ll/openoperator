@@ -20,11 +20,13 @@ To learn more, check out the [documentation 📕](https://openoperator.co).
 
 # Quick start
 
-Install playwright:
+Install the openoperator:
 
 ```bash
-pip install openoperator
+uv pip install openoperator
 ```
+
+Install playwright:
 
 ```bash
 playwright install

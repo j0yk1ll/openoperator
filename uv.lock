@@ -1586,6 +1586,7 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "requests" },
     { name = "setuptools" },
+    { name = "tld" },
 ]
 
 [package.optional-dependencies]
@@ -1628,6 +1629,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "setuptools", specifier = ">=75.8.0" },
+    { name = "tld", specifier = "==0.13" },
     { name = "tokencost", marker = "extra == 'dev'", specifier = ">=0.1.16" },
 ]
 

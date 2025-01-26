@@ -29,7 +29,8 @@ dependencies = [
     "posthog>=3.7.0",
     "playwright>=1.49.0",
     "setuptools>=75.8.0",
-    "lmnr[langchain]>=0.4.53"
+    "lmnr[langchain]>=0.4.53",
+    "tld==0.13",
 ]
 
 [project.optional-dependencies]
@@ -48,10 +49,10 @@ examples = [
 
 [tool.ruff]
 line-length = 130
-extend-ignore = ["E501"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+extend-ignore = ["E501"]
 
 [tool.ruff.format]
 quote-style = "single"
@@ -60,7 +61,7 @@ docstring-code-format = true
 
 [tool.black]
 line-length = 130
-target-version = ["py311"]   # or whichever versions you support
+target-version = ["py311"]
 skip-string-normalization = true
 
 [build-system]

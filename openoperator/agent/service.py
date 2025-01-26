@@ -109,6 +109,7 @@ class Agent:
         # so that existing references (prompts, logs) still work.
         # When running multiple tasks, we update this as we go.
         self.task = self.tasks[0] if self.tasks else None
+        self.current_task_index = 0  # Tracks which task is being executed
 
         self.use_vision = use_vision
         self.llm = llm
@@ -480,7 +481,6 @@ class Agent:
                 logger.info('===============================\n')
 
                 self.task = task  # update the internal "active" task
-                self.current_task_index = 0  # Tracks which task is being executed
 
                 if self.reset_messages_on_new_task:
                     self.message_manager.reset_messages(self.task)
