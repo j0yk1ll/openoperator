@@ -13,14 +13,16 @@ initial_actions = [
     {'scroll_down': {'amount': 1000}},
     {'extract_content': {'include_links': False}},
 ]
-agent = Agent(
-    task='What theories are displayed on the page?',
-    initial_actions=initial_actions,
-    llm=llm,
-)
 
 
 async def main():
+    agent = Agent(
+        initial_actions=initial_actions,
+        llm=llm,
+    )
+
+    agent.add_task('What theories are displayed on the page?')
+
     await agent.run(max_steps=10)
 
 

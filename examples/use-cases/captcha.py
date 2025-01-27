@@ -8,9 +8,10 @@ from openoperator import Agent
 # for this example it helps to zoom in.
 llm = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
 agent = Agent(
-    task='go to https://captcha.com/demos/features/captcha-demo.aspx and solve the captcha',
     llm=llm,
 )
+
+agent.add_task('go to https://captcha.com/demos/features/captcha-demo.aspx and solve the captcha')
 
 
 async def main():

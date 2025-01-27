@@ -23,6 +23,7 @@ from dataclasses import dataclass
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
+from pydantic import SecretStr
 
 from openoperator import Agent, Controller
 from openoperator.browser.browser import Browser, BrowserConfig
@@ -47,7 +48,7 @@ class TwitterConfig:
 
 # Customize these settings
 config = TwitterConfig(
-    openai_api_key=os.getenv('OPENAI_API_KEY'),
+    openai_api_key=os.getenv('OPENAI_API_KEY') or '',
     chrome_path='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',  # This is for MacOS (Chrome)
     target_user='XXXXX',
     message='XXXXX',
@@ -57,7 +58,7 @@ config = TwitterConfig(
 
 
 def create_twitter_agent(config: TwitterConfig) -> Agent:
-    llm = ChatOpenAI(model=config.model, api_key=config.openai_api_key)
+    llm = ChatOpenAI(model=config.model, api_key=SecretStr(config.openai_api_key))
 
     browser = Browser(
         config=BrowserConfig(
@@ -68,19 +69,34 @@ def create_twitter_agent(config: TwitterConfig) -> Agent:
 
     controller = Controller()
 
-    # Construct the full message with tag
-    full_message = f'@{config.target_user} {config.message}'
-
     # Create the agent with detailed instructions
     return Agent(
-        task=f"""Navigate to Twitter and create a post and reply to a tweet.
+        llm=llm,
+        controller=controller,
+        browser=browser,
+    )
+
+
+async def post_tweet(agent: Agent):
+    try:
+        await agent.run(max_steps=100)
+        print('Tweet posted successfully!')
+    except Exception as e:
+        print(f'Error posting tweet: {str(e)}')
+
+
+def main():
+    agent = create_twitter_agent(config)
+
+    agent.add_task(
+        f"""Navigate to Twitter and create a post and reply to a tweet.
 
         Here are the specific steps:
 
         1. Go to {config.base_url}. See the text input field at the top of the page that says "What's happening?"
         2. Look for the text input field at the top of the page that says "What's happening?"
         3. Click the input field and type exactly this message:
-        "{full_message}"
+        "@{config.target_user} {config.message}"
         4. Find and click the "Post" button (look for attributes: 'button' and 'data-testid="tweetButton"')
         5. Do not click on the '+' button which will add another tweet.
 
@@ -93,24 +109,9 @@ def create_twitter_agent(config: TwitterConfig) -> Agent:
         - Make sure the message is typed exactly as shown
         - Verify the post button is clickable before clicking
         - Do not click on the '+' button which will add another tweet
-        """,
-        llm=llm,
-        controller=controller,
-        browser=browser,
+        """
     )
 
-
-async def post_tweet(agent: Agent):
-    try:
-        await agent.run(max_steps=100)
-        agent.create_history_gif()
-        print('Tweet posted successfully!')
-    except Exception as e:
-        print(f'Error posting tweet: {str(e)}')
-
-
-def main():
-    agent = create_twitter_agent(config)
     asyncio.run(post_tweet(agent))
 
 

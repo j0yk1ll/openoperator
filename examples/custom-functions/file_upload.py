@@ -63,15 +63,14 @@ async def close_file_dialog(browser: BrowserContext):
 
 
 async def main():
-    task = 'go to https://kzmpmkh2zfk1ojnpxfn1.lite.vusercontent.net/' ' and upload to each upload field my file'
-
     model = ChatOpenAI(model='gpt-4o')
     agent = Agent(
-        task=task,
         llm=model,
         controller=controller,
         browser=browser,
     )
+
+    agent.add_task('go to https://kzmpmkh2zfk1ojnpxfn1.lite.vusercontent.net/ and upload to each upload field my file')
 
     await agent.run()
 

@@ -25,9 +25,10 @@ controller = Controller(output_model=Posts)
 
 
 async def main():
-    task = 'Go to hackernews show hn and give me the first  5 posts'
     model = ChatOpenAI(model='gpt-4o')
-    agent = Agent(task=task, llm=model, controller=controller)
+    agent = Agent(llm=model, controller=controller)
+
+    agent.add_task('Go to hackernews show hn and give me the first  5 posts')
 
     history = await agent.run()
 

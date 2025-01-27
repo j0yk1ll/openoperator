@@ -28,14 +28,15 @@ controller = Controller()
 
 
 async def main():
-    task = 'In docs.google.com write my Papa a quick thank you for everything letter \n - Magnus'
-    task += ' and save the document as pdf'
     model = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
     agent = Agent(
-        task=task,
         llm=model,
         controller=controller,
         browser=browser,
+    )
+
+    agent.add_task(
+        'In docs.google.com write my Papa a quick thank you for everything letter \n - Magnus and save the document as pdf'
     )
 
     await agent.run()

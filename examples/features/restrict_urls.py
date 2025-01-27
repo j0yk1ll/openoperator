@@ -7,9 +7,6 @@ from openoperator.browser.browser import Browser, BrowserConfig
 from openoperator.browser.context import BrowserContextConfig
 
 llm = ChatOpenAI(model='gpt-4o', temperature=0.0)
-task = (
-    'go to google.com and search for openai.com and click on the first link then extract content and scroll down - whats there?'
-)
 
 allowed_domains = ['google.com']
 
@@ -22,14 +19,17 @@ browser = Browser(
     ),
 )
 
-agent = Agent(
-    task=task,
-    llm=llm,
-    browser=browser,
-)
-
 
 async def main():
+    agent = Agent(
+        llm=llm,
+        browser=browser,
+    )
+
+    agent.add_task(
+        'go to google.com and search for openai.com and click on the first link then extract content and scroll down - whats there?'
+    )
+
     await agent.run(max_steps=25)
 
     input('Press Enter to close the browser...')

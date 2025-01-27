@@ -30,9 +30,11 @@ async def main():
         )
     ) as browser_context:
         agent = Agent(
-            task="go to google.com and type 'OpenAI' click search and give me the first url",
             llm=llm,
             browser_context=browser_context,
+        )
+        agent.add_task(
+            "go to google.com and type 'OpenAI' click search and give me the first url",
         )
         history: AgentHistoryList = await agent.run(max_steps=3)
 

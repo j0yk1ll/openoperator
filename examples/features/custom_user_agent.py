@@ -56,7 +56,6 @@ browser = Browser(
 browser_context = BrowserContext(config=BrowserContextConfig(user_agent='foobarfoo'), browser=browser)
 
 agent = Agent(
-    task=args.query,
     llm=llm,
     controller=controller,
     # browser=browser,
@@ -64,6 +63,8 @@ agent = Agent(
     use_vision=True,
     max_actions_per_step=1,
 )
+
+agent.add_task(args.query)
 
 
 async def main():

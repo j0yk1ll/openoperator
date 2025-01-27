@@ -105,7 +105,8 @@ class DiscordBot(commands.Bot):
     async def run_agent(self, task: str) -> str:
         try:
             browser = Browser(config=self.browser_config)
-            agent = Agent(task=(task), llm=self.llm, browser=browser)
+            agent = Agent(llm=self.llm, browser=browser)
+            agent.add_task(task)
             result = await agent.run()
 
             agent_message = None

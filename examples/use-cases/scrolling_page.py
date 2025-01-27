@@ -15,11 +15,11 @@ If no amount is specified, the agent will scroll down by one page height.
 llm = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
 
 agent = Agent(
-    # task="Navigate to 'https://en.wikipedia.org/wiki/Internet' and scroll down by one page - then scroll up by 100 pixels - then scroll down by 100 pixels - then scroll down by 10000 pixels.",
-    task="Navigate to 'https://en.wikipedia.org/wiki/Internet' and scroll to the string 'The vast majority of computer'",
     llm=llm,
     browser=Browser(config=BrowserConfig(headless=False)),
 )
+
+agent.add_task("Navigate to 'https://en.wikipedia.org/wiki/Internet' and scroll to the string 'The vast majority of computer'")
 
 
 async def main():

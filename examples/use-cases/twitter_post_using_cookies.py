@@ -22,10 +22,10 @@ context = BrowserContext(browser=browser, config=BrowserContextConfig(cookies_fi
 async def run_search():
     agent = Agent(
         browser_context=context,
-        task=('go to https://x.com. write a new post with the text "openoperator ftw", and submit it'),
         llm=llm,
         max_actions_per_step=4,
     )
+    agent.add_task('go to https://x.com. write a new post with the text "openoperator ftw", and submit it')
     await agent.run(max_steps=25)
     input('Press Enter to close the browser...')
 

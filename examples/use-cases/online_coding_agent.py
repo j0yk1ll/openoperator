@@ -10,24 +10,30 @@ async def main():
     async with await browser.new_context() as context:
         model = ChatOpenAI(model='gpt-4o')
 
-        # Initialize browser agent
-        agent1 = Agent(
-            task='Open an online code editor programiz.',
+        # initialize agents
+        agent = Agent(
             llm=model,
             browser_context=context,
         )
         executor = Agent(
-            task='Executor. Execute the code written by the coder and suggest some updates if there are errors.',
             llm=model,
             browser_context=context,
         )
 
         coder = Agent(
-            task='Coder. Your job is to write and complete code. You are an expert coder. Code a simple calculator. Write the code on the coding interface after agent1 has opened the link.',
             llm=model,
             browser_context=context,
         )
-        await agent1.run()
+
+        # assign tasks
+        agent.add_task('Open an online code editor programiz.')
+        executor.add_task('Executor. Execute the code written by the coder and suggest some updates if there are errors.')
+        coder.add_task(
+            'Coder. Your job is to write and complete code. You are an expert coder. Code a simple calculator. Write the code on the coding interface after agent1 has opened the link.'
+        )
+
+        # run agents
+        await agent.run()
         await executor.run()
         await coder.run()
 

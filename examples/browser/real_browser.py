@@ -15,10 +15,11 @@ browser = Browser(
 
 async def main():
     agent = Agent(
-        task='In docs.google.com write my Papa a quick letter',
         llm=ChatOpenAI(model='gpt-4o'),
         browser=browser,
     )
+
+    agent.add_task('In docs.google.com write my Papa a quick letter')
 
     await agent.run()
     await browser.close()

@@ -11,9 +11,11 @@ class AgentController:
     def __init__(self):
         llm = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
         self.agent = Agent(
-            task="Go to wikipedia.org and search for 'Python programming language', then read the first paragraph",
             llm=llm,
         )
+
+        self.agent.add_task("Go to wikipedia.org and search for 'Python programming language', then read the first paragraph")
+
         self.running = False
 
     async def run_agent(self):

@@ -19,15 +19,18 @@ browser = Browser(
 
 async def run_download():
     agent = Agent(
-        task=[
-            'Go to "https://file-examples.com/"',
-            'Download the smallest word file.',
-            'Download the largest powerpoint file',
-        ],
         llm=llm,
         max_actions_per_step=8,
         use_vision=True,
         browser=browser,
+    )
+
+    agent.add_task('Go to "https://file-examples.com/"')
+    agent.add_tasks(
+        [
+            'Download the smallest word file.',
+            'Download the largest powerpoint file',
+        ]
     )
 
     await agent.run(max_steps=25)

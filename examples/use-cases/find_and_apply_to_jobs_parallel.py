@@ -136,7 +136,8 @@ async def main():
 
     agents = []
     for task in tasks:
-        agent = Agent(task=task, llm=model, controller=controller, browser=browser)
+        agent = Agent(llm=model, controller=controller, browser=browser)
+        agent.add_task(task)
         agents.append(agent)
 
     await asyncio.gather(*[agent.run() for agent in agents])

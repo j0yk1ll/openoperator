@@ -42,16 +42,15 @@ browser = Browser(
     )
 )
 
-agent = Agent(
-    task=args.query,
-    llm=llm,
-    controller=Controller(),
-    browser=browser,
-    validate_output=True,
-)
-
 
 async def main():
+    agent = Agent(
+        llm=llm,
+        controller=Controller(),
+        browser=browser,
+        validate_output=True,
+    )
+    agent.add_task(args.query)
     await agent.run(max_steps=30)
     await browser.close()
 

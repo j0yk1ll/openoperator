@@ -9,7 +9,8 @@ async def main():
     # Persist the browser state across agents
 
     browser = Browser()
-    async with await browser.new_context() as context:
+    context = await browser.new_context()
+    async with context as context:
         model = ChatOpenAI(model='gpt-4o')
         current_agent = None
 
@@ -45,15 +46,14 @@ async def main():
 
             # Create and run new agent with the task
             current_agent = Agent(
-                task=task,
                 llm=model,
                 browser_context=context,
             )
+
+            current_agent.add_task(task)
 
             # Run the agent asynchronously without blocking
             asyncio.create_task(current_agent.run())
 
 
 asyncio.run(main())
-
-# Now aad the cheapest to the cart
