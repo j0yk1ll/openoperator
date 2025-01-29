@@ -1,11 +1,9 @@
 import asyncio
-import os
 
 import dotenv
-from langchain_openai import ChatOpenAI
-from pydantic import BaseModel, SecretStr
+from pydantic import BaseModel
 
-from openoperator.agent.service import Agent
+from openoperator.agent.service import LLM, Agent
 from openoperator.controller.service import Controller
 
 dotenv.load_dotenv()
@@ -24,7 +22,7 @@ def go_to_webpage(webpage_info: WebpageInfo):
 
 
 async def main():
-    model = ChatOpenAI(model='gpt-4o-mini', api_key=SecretStr(os.getenv('OPENAI_API_KEY', '')))
+    model = LLM(model='openai/gpt-4o')
     agent = Agent(model, controller=controller, use_vision=True)
 
     agent.add_tasks(

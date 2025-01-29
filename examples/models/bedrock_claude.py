@@ -7,20 +7,9 @@ Automated news analysis and sentiment scoring using Bedrock.
 import argparse
 import asyncio
 
-from langchain_aws import ChatBedrock
-
-from openoperator import Agent
+from openoperator import LLM, Agent
 from openoperator.browser.browser import Browser, BrowserConfig
 from openoperator.controller.service import Controller
-
-
-def get_llm():
-    return ChatBedrock(
-        model='us.anthropic.claude-3-5-sonnet-20241022-v2:0',
-        temperature=0.0,
-        max_tokens=None,
-    )
-
 
 # Define the task for the agent
 task = (
@@ -34,8 +23,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--query', type=str, help='The query for the agent to execute', default=task)
 args = parser.parse_args()
 
-llm = get_llm()
-
 browser = Browser(
     config=BrowserConfig(
         # chrome_instance_path='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -44,6 +31,7 @@ browser = Browser(
 
 
 async def main():
+    llm = LLM(model='bedrock/us.anthropic.claude-3-5-sonnet-20241022-v2:0')
     agent = Agent(
         llm=llm,
         controller=Controller(),

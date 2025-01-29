@@ -2,10 +2,9 @@ import asyncio
 from typing import List
 
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
-from openoperator import Agent, Controller
+from openoperator import LLM, Agent, Controller
 
 load_dotenv()
 
@@ -25,7 +24,7 @@ controller = Controller(output_model=Posts)
 
 
 async def main():
-    model = ChatOpenAI(model='gpt-4o')
+    model = LLM(model='openai/gpt-4o')
     agent = Agent(llm=model, controller=controller)
 
     agent.add_task('Go to hackernews show hn and give me the first  5 posts')

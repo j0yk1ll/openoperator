@@ -2,9 +2,7 @@ import asyncio
 import logging
 from pathlib import Path
 
-from langchain_openai import ChatOpenAI
-
-from openoperator import Agent, Controller
+from openoperator import LLM, Agent, Controller
 from openoperator.agent.views import ActionResult
 from openoperator.browser.browser import Browser, BrowserConfig
 from openoperator.browser.context import BrowserContext
@@ -63,9 +61,8 @@ async def close_file_dialog(browser: BrowserContext):
 
 
 async def main():
-    model = ChatOpenAI(model='gpt-4o')
     agent = Agent(
-        llm=model,
+        llm=LLM(model='openai/gpt-4o'),
         controller=controller,
         browser=browser,
     )

@@ -1,9 +1,8 @@
 import asyncio
 
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 
-from openoperator import ActionResult, Agent, Controller
+from openoperator import LLM, ActionResult, Agent, Controller
 
 load_dotenv()
 
@@ -29,7 +28,7 @@ async def done(text: str):
 
 
 async def main():
-    model = ChatOpenAI(model='gpt-4o')
+    model = LLM(model='openai/gpt-4o')
     agent = Agent(llm=model, controller=controller)
     agent.add_task('go to brower-use.com and then done')
     await agent.run()

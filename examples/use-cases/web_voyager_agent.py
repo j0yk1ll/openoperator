@@ -1,10 +1,6 @@
 import asyncio
-import os
 
-from langchain_openai import AzureChatOpenAI
-from pydantic import SecretStr
-
-from openoperator.agent.service import Agent
+from openoperator.agent.service import LLM, Agent
 from openoperator.browser.browser import Browser, BrowserConfig, BrowserContextConfig
 
 browser = Browser(
@@ -24,12 +20,7 @@ browser = Browser(
         ),
     )
 )
-llm = AzureChatOpenAI(
-    model='gpt-4o',
-    api_version='2024-10-21',
-    azure_endpoint=os.getenv('AZURE_OPENAI_ENDPOINT', ''),
-    api_key=SecretStr(os.getenv('AZURE_OPENAI_KEY', '')),
-)
+llm = LLM(model='openai/gpt-4o')
 
 
 async def main():

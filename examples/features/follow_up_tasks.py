@@ -1,23 +1,17 @@
 import asyncio
 
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 
-from openoperator import Agent
+from openoperator import LLM, Agent
 from openoperator.controller.service import Controller
 
 load_dotenv()
 
-# Initialize the model
-llm = ChatOpenAI(
-    model='gpt-4o',
-    temperature=0.0,
-)
 controller = Controller()
 
 
 async def main():
-    agent = Agent(llm=llm, controller=controller)
+    agent = Agent(llm=LLM(model='openai/gpt-4o'), controller=controller)
 
     agent.add_task('Find the names of the browser-use founders')
 

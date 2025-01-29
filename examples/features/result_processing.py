@@ -1,9 +1,7 @@
 import asyncio
 from pprint import pprint
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-
-from openoperator import Agent
+from openoperator import LLM, Agent
 from openoperator.agent.views import AgentHistoryList
 from openoperator.browser.browser import Browser, BrowserConfig
 from openoperator.browser.context import (
@@ -11,7 +9,7 @@ from openoperator.browser.context import (
     BrowserContextWindowSize,
 )
 
-llm = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
+llm = LLM(model='openai/gpt-4o')
 browser = Browser(
     config=BrowserConfig(
         headless=False,

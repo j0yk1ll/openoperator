@@ -1,10 +1,9 @@
 import asyncio
 from typing import List
 
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
-from openoperator.agent.service import Agent
+from openoperator.agent.service import LLM, Agent
 from openoperator.controller.service import Controller
 
 # Initialize controller first
@@ -31,7 +30,7 @@ def save_models(params: Models):
 
 # video: https://preview.screen.studio/share/EtOhIk0P
 async def main():
-    model = ChatOpenAI(model='gpt-4o')
+    model = LLM(model='openai/gpt-4o')
     agent = Agent(llm=model, controller=controller)
 
     agent.add_task('Look up models with a license of cc-by-sa-4.0 and sort by most likes on Hugging face, save top 5 to file.')

@@ -6,7 +6,6 @@ import uuid
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
 from dotenv import load_dotenv
-from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import BaseMessage
 from lmnr import observe
 from openai import RateLimitError
@@ -31,6 +30,7 @@ from openoperator.browser.context import BrowserContext
 from openoperator.browser.views import BrowserState, BrowserStateHistory
 from openoperator.controller.registry.views import ActionModel
 from openoperator.controller.service import Controller
+from openoperator.llm import LLM
 from openoperator.telemetry.service import ProductTelemetry
 from openoperator.telemetry.views import (
     AgentEndTelemetryEvent,
@@ -48,7 +48,7 @@ T = TypeVar('T', bound=BaseModel)
 class Agent:
     def __init__(
         self,
-        llm: BaseChatModel,
+        llm: LLM,
         browser: Browser | None = None,
         browser_context: BrowserContext | None = None,
         controller: Controller = Controller(),
@@ -124,8 +124,6 @@ class Agent:
         self._set_version_and_source()
         self.max_input_tokens = max_input_tokens
 
-        self._set_model_names()
-
         self.tool_calling_method = self._set_tool_calling_method(tool_calling_method)
 
         # Step callback
@@ -165,15 +163,6 @@ class Agent:
         self.version = version
         self.source = source
 
-    def _set_model_names(self) -> None:
-        self.chat_model_library = self.llm.__class__.__name__
-        if hasattr(self.llm, 'model_name'):
-            self.model_name = self.llm.model_name  # type: ignore
-        elif hasattr(self.llm, 'model'):
-            self.model_name = self.llm.model  # type: ignore
-        else:
-            self.model_name = 'Unknown'
-
     def _setup_action_models(self) -> None:
         """Setup dynamic action models from controller's registry"""
         # Get the dynamic action model from controller's registry
@@ -183,11 +172,11 @@ class Agent:
 
     def _set_tool_calling_method(self, tool_calling_method: Optional[str]) -> Optional[str]:
         if tool_calling_method == 'auto':
-            if self.chat_model_library == 'ChatGoogleGenerativeAI':
+            if self.llm.model_provider == 'gemini':
                 return None
-            elif self.chat_model_library == 'ChatOpenAI':
+            elif self.llm.model_provider == 'openai':
                 return 'function_calling'
-            elif self.chat_model_library == 'AzureChatOpenAI':
+            elif self.llm.model_provider == 'azure':
                 return 'function_calling'
             else:
                 return None
@@ -318,23 +307,25 @@ class Agent:
     async def get_next_action(self, input_messages: list[BaseMessage]) -> AgentOutput:
         """Get next action from LLM based on current state"""
 
-        if self.model_name == 'deepseek-reasoner':
+        if self.llm.model_provider == 'deepseek' and self.llm.model_name == 'deepseek-reasoner':
             converted_input_messages = self.message_manager.convert_messages_for_non_function_calling_models(input_messages)
             merged_input_messages = self.message_manager.merge_successive_human_messages(converted_input_messages)
-            output = self.llm.invoke(merged_input_messages)
+            output = self.llm.model.invoke(merged_input_messages)
             # TODO: currently invoke does not return reasoning_content, we should override invoke
             try:
-                parsed_json = self.message_manager.extract_json_from_model_output(output.content)
+                parsed_json = self.message_manager.extract_json_from_model_output(output.content)  # type: ignore
                 parsed = self.AgentOutput(**parsed_json)
             except (ValueError, ValidationError) as e:
                 logger.warning(f'Failed to parse model output: {str(e)}')
                 raise ValueError('Could not parse response.')
         elif self.tool_calling_method is None:
-            structured_llm = self.llm.with_structured_output(self.AgentOutput, include_raw=True)
+            structured_llm = self.llm.model.with_structured_output(self.AgentOutput, include_raw=True)
             response: dict[str, Any] = await structured_llm.ainvoke(input_messages)  # type: ignore
             parsed: AgentOutput | None = response['parsed']
         else:
-            structured_llm = self.llm.with_structured_output(self.AgentOutput, include_raw=True, method=self.tool_calling_method)
+            structured_llm = self.llm.model.with_structured_output(
+                self.AgentOutput, include_raw=True, method=self.tool_calling_method
+            )
             response: dict[str, Any] = await structured_llm.ainvoke(input_messages)  # type: ignore
             parsed: AgentOutput | None = response['parsed']
 
@@ -361,6 +352,10 @@ class Agent:
         logger.info(f'{emoji} Eval: {response.current_state.evaluation_previous_goal}')
         logger.info(f'🧠 Memory: {response.current_state.memory}')
         logger.info(f'🎯 Next goal: {response.current_state.next_goal}')
+
+        if len(response.action) == 0:
+            logger.info('🛠️  No Action selected')
+
         for i, action in enumerate(response.action):
             logger.info(f'🛠️  Action {i + 1}/{len(response.action)}: {action.model_dump_json(exclude_unset=True)}')
 
@@ -374,8 +369,8 @@ class Agent:
                 agent_id=self.agent_id,
                 use_vision=self.use_vision,
                 task=task,
-                model_name=self.model_name,
-                chat_model_library=self.chat_model_library,
+                model_provider=self.llm.model_provider,
+                model_name=self.llm.model_name,
                 version=self.version,
                 source=self.source,
             )
@@ -392,7 +387,6 @@ class Agent:
             raise Exception('You must add at least one task to the agent.')
 
         self.message_manager = MessageManager(
-            llm=self.llm,
             task=self.tasks[0],
             action_descriptions=self.controller.registry.get_prompt_description(),
             system_prompt_class=self.system_prompt_class,
@@ -409,7 +403,7 @@ class Agent:
                 task = self.tasks[self.current_task_index]
                 idx = self.current_task_index + 1
                 logger.info('\n===============================')
-                logger.info(f'Starting sub-task {idx}/{len(self.tasks)}:')
+                logger.info(f'Starting task {idx}/{len(self.tasks)}:')
                 logger.info(f'Task: {task}')
                 logger.info('===============================\n')
 
@@ -524,7 +518,7 @@ class Agent:
             is_valid: bool
             reason: str
 
-        validator = self.llm.with_structured_output(ValidationResult, include_raw=True)
+        validator = self.llm.model.with_structured_output(ValidationResult, include_raw=True)
         response: dict[str, Any] = await validator.ainvoke(msg)  # type: ignore
         parsed: ValidationResult = response['parsed']
         is_valid = parsed.is_valid

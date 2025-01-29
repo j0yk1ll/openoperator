@@ -2,10 +2,8 @@ import asyncio
 import os
 
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from pydantic import SecretStr
 
-from openoperator import Agent
+from openoperator import LLM, Agent
 
 # dotenv
 load_dotenv()
@@ -16,12 +14,9 @@ if not api_key:
 
 
 async def run_search():
+    llm = LLM(model='deepseek/deepseek-chat')
     agent = Agent(
-        llm=ChatOpenAI(
-            base_url='https://api.deepseek.com/v1',
-            model='deepseek-chat',
-            api_key=SecretStr(api_key),
-        ),
+        llm=llm,
         use_vision=False,
     )
 

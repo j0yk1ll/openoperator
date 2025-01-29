@@ -1,8 +1,6 @@
 import asyncio
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-
-from openoperator import Agent
+from openoperator import LLM, Agent
 from openoperator.browser.browser import Browser, BrowserConfig
 
 """
@@ -12,7 +10,7 @@ This script demonstrates how the agent can navigate to a webpage and scroll down
 If no amount is specified, the agent will scroll down by one page height.
 """
 
-llm = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
+llm = LLM(model='openai/gpt-4o')
 
 agent = Agent(
     llm=llm,

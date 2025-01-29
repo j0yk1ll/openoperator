@@ -1,8 +1,6 @@
 import asyncio
 
-from langchain_openai import ChatOpenAI
-
-from openoperator import Agent, Browser
+from openoperator import LLM, Agent, Browser
 
 
 async def main():
@@ -11,7 +9,7 @@ async def main():
     browser = Browser()
     context = await browser.new_context()
     async with context as context:
-        model = ChatOpenAI(model='gpt-4o')
+        model = LLM(model='openai/gpt-4o')
         current_agent = None
 
         async def get_input():

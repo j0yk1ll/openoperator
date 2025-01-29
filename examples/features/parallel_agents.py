@@ -1,8 +1,6 @@
 import asyncio
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-
-from openoperator.agent.service import Agent
+from openoperator.agent.service import LLM, Agent
 from openoperator.browser.browser import Browser, BrowserConfig
 from openoperator.browser.context import BrowserContextConfig
 
@@ -13,7 +11,7 @@ browser = Browser(
         new_context_config=BrowserContextConfig(save_recording_path='./tmp/recordings'),
     )
 )
-llm = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
+llm = LLM(model='openai/gpt-4o')
 
 
 async def main():

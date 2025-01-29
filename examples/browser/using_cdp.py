@@ -13,9 +13,7 @@ To test this locally, follow these steps:
 
 import asyncio
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-
-from openoperator import Agent, Controller
+from openoperator import LLM, Agent, Controller
 from openoperator.browser.browser import Browser, BrowserConfig
 
 browser = Browser(
@@ -28,9 +26,8 @@ controller = Controller()
 
 
 async def main():
-    model = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
     agent = Agent(
-        llm=model,
+        llm=LLM(model='openai/gpt-4o'),
         controller=controller,
         browser=browser,
     )

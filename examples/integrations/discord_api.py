@@ -1,10 +1,9 @@
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-from langchain_core.language_models.chat_models import BaseChatModel
 
 from openoperator import BrowserConfig
-from openoperator.agent.service import Agent, Browser
+from openoperator.agent.service import LLM, Agent, Browser
 
 load_dotenv()
 
@@ -39,7 +38,7 @@ class DiscordBot(commands.Bot):
 
     def __init__(
         self,
-        llm: BaseChatModel,
+        llm: LLM,
         prefix: str = '$bu',
         ack: bool = False,
         browser_config: BrowserConfig = BrowserConfig(headless=True),

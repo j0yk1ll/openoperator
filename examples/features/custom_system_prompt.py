@@ -2,9 +2,8 @@ import asyncio
 import json
 
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 
-from openoperator import Agent, SystemPrompt
+from openoperator import LLM, Agent, SystemPrompt
 
 load_dotenv()
 
@@ -19,7 +18,7 @@ class MySystemPrompt(SystemPrompt):
 
 
 async def main():
-    model = ChatOpenAI(model='gpt-4o')
+    model = LLM(model='openai/gpt-4o')
     agent = Agent(llm=model, system_prompt_class=MySystemPrompt)
 
     agent.add_task("do google search to find images of Elon Musk's wife")

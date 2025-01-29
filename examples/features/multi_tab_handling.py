@@ -1,10 +1,8 @@
 import asyncio
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from openoperator import LLM, Agent
 
-from openoperator import Agent
-
-llm = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
+llm = LLM(model='openai/gpt-4o')
 
 
 async def main():

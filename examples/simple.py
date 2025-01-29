@@ -1,17 +1,14 @@
 import asyncio
 
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 
 from openoperator import Agent
+from openoperator.llm import LLM
 
 load_dotenv()
 
 # Initialize the model
-llm = ChatOpenAI(
-    model='gpt-4o',
-    temperature=0.0,
-)
+llm = LLM('ollama/llama3.2')
 
 agent = Agent(llm=llm)
 agent.add_task('Find the founders of browser-use and draft them a short personalized message')

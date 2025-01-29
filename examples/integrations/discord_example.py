@@ -35,10 +35,9 @@ Five Steps to create and invite a Discord bot:
 import os
 
 from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
 
 from examples.integrations.discord_api import DiscordBot
-from openoperator import BrowserConfig
+from openoperator import LLM, BrowserConfig
 
 load_dotenv()
 
@@ -47,7 +46,7 @@ bot_token = os.getenv('DISCORD_BOT_TOKEN')
 if not bot_token:
     raise ValueError('Discord bot token not found in .env file.')
 
-llm = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
+llm = LLM(model='openai/gpt-4o')
 
 bot = DiscordBot(
     llm=llm,  # required; instance of BaseChatModel

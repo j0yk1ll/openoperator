@@ -1,12 +1,10 @@
 import asyncio
 
-from langchain_openai import ChatOpenAI
-
-from openoperator import Agent
+from openoperator import LLM, Agent
 from openoperator.browser.browser import Browser, BrowserConfig
 from openoperator.browser.context import BrowserContextConfig
 
-llm = ChatOpenAI(model='gpt-4o', temperature=0.0)
+llm = LLM(model='openai/gpt-4o')
 
 allowed_domains = ['google.com']
 

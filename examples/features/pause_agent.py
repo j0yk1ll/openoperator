@@ -2,14 +2,12 @@ import asyncio
 import threading
 import time
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-
-from openoperator import Agent
+from openoperator import LLM, Agent
 
 
 class AgentController:
     def __init__(self):
-        llm = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
+        llm = LLM(model='openai/gpt-4o')
         self.agent = Agent(
             llm=llm,
         )

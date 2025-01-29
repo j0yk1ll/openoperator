@@ -1,51 +1,14 @@
-import argparse
 import asyncio
 
-from langchain_anthropic import ChatAnthropic
-from langchain_openai import ChatOpenAI
-
-from openoperator import Agent
+from openoperator import LLM, Agent
 from openoperator.browser.browser import Browser, BrowserConfig
 from openoperator.browser.context import BrowserContext, BrowserContextConfig
 from openoperator.controller.service import Controller
 
-
-def get_llm(provider: str):
-    if provider == 'anthropic':
-        return ChatAnthropic(
-            model_name='claude-3-5-sonnet-20240620',
-            timeout=25,
-            stop=None,
-            temperature=0.0,
-        )
-    elif provider == 'openai':
-        return ChatOpenAI(model='gpt-4o', temperature=0.0)
-
-    else:
-        raise ValueError(f'Unsupported provider: {provider}')
-
-
 # NOTE: This example is to find your current user agent string to use it in the browser_context
 task = 'go to https://whatismyuseragent.com and find the current user agent string '
 
-
 controller = Controller()
-
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--query', type=str, help='The query to process', default=task)
-parser.add_argument(
-    '--provider',
-    type=str,
-    choices=['openai', 'anthropic'],
-    default='openai',
-    help='The model provider to use (default: openai)',
-)
-
-args = parser.parse_args()
-
-llm = get_llm(args.provider)
-
 
 browser = Browser(
     config=BrowserConfig(
@@ -56,7 +19,7 @@ browser = Browser(
 browser_context = BrowserContext(config=BrowserContextConfig(user_agent='foobarfoo'), browser=browser)
 
 agent = Agent(
-    llm=llm,
+    llm=LLM(model='openai/gpt-4o'),
     controller=controller,
     # browser=browser,
     browser_context=browser_context,
@@ -64,7 +27,7 @@ agent = Agent(
     max_actions_per_step=1,
 )
 
-agent.add_task(args.query)
+agent.add_task(task)
 
 
 async def main():

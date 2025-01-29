@@ -1,8 +1,6 @@
 import asyncio
 
-from langchain_openai import ChatOpenAI
-
-from openoperator import Agent
+from openoperator import LLM, Agent
 from openoperator.browser.browser import Browser, BrowserConfig
 
 browser = Browser(
@@ -15,7 +13,7 @@ browser = Browser(
 
 async def main():
     agent = Agent(
-        llm=ChatOpenAI(model='gpt-4o'),
+        llm=LLM(model='openai/gpt-4o'),
         browser=browser,
     )
 

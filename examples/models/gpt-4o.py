@@ -1,10 +1,8 @@
 import asyncio
 
-from langchain_openai import ChatOpenAI
+from openoperator import LLM, Agent
 
-from openoperator import Agent
-
-llm = ChatOpenAI(model='gpt-4o')
+llm = LLM(model='openai/gpt-4o')
 agent = Agent(
     llm=llm,
 )

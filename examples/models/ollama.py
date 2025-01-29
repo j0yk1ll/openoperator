@@ -1,15 +1,13 @@
 import asyncio
 
-from langchain_ollama import ChatOllama
-
-from openoperator import Agent
+from openoperator import LLM, Agent
 from openoperator.agent.views import AgentHistoryList
 
 
 async def run_search() -> AgentHistoryList:
     agent = Agent(
-        llm=ChatOllama(
-            model='qwen2.5:32b-instruct-q4_K_M',
+        llm=LLM(
+            model='ollama/qwen2.5:32b-instruct-q4_K_M',
             num_ctx=32000,
         ),
     )

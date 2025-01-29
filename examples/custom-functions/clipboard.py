@@ -1,9 +1,8 @@
 import asyncio
 
 import pyperclip
-from langchain_openai import ChatOpenAI
 
-from openoperator import Agent, Controller
+from openoperator import LLM, Agent, Controller
 from openoperator.agent.views import ActionResult
 from openoperator.browser.browser import Browser, BrowserConfig
 from openoperator.browser.context import BrowserContext
@@ -33,7 +32,7 @@ async def paste_from_clipboard(browser: BrowserContext):
 
 
 async def main():
-    model = ChatOpenAI(model='gpt-4o')
+    model = LLM(model='openai/gpt-4o')
     agent = Agent(
         llm=model,
         controller=controller,

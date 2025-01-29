@@ -1,12 +1,10 @@
 import asyncio
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-
-from openoperator import Agent
+from openoperator import LLM, Agent
 
 # NOTE: captchas are hard. For this example it works. But e.g. for iframes it does not.
 # for this example it helps to zoom in.
-llm = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
+llm = LLM(model='openai/gpt-4o')
 agent = Agent(
     llm=llm,
 )

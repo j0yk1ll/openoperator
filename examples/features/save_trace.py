@@ -1,12 +1,10 @@
 import asyncio
 
-from langchain_openai import ChatOpenAI
-
-from openoperator.agent.service import Agent
+from openoperator.agent.service import LLM, Agent
 from openoperator.browser.browser import Browser
 from openoperator.browser.context import BrowserContextConfig
 
-llm = ChatOpenAI(model='gpt-4o', temperature=0.0)
+llm = LLM(model='openai/gpt-4o')
 
 
 async def main():

@@ -1,10 +1,9 @@
 import asyncio
 
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
-from openoperator import ActionResult, Agent, Controller
+from openoperator import LLM, ActionResult, Agent, Controller
 
 load_dotenv()
 
@@ -27,7 +26,7 @@ async def done(params: DoneResult):
 
 
 async def main():
-    model = ChatOpenAI(model='gpt-4o')
+    model = LLM(model='openai/gpt-4o')
     agent = Agent(llm=model, controller=controller, validate_output=True)
     agent.add_task('Go to hackernews hn and give me the top 1 post')
     # NOTE: this should fail to demonstrate the validator

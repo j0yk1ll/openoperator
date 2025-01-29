@@ -22,10 +22,8 @@ import os
 from dataclasses import dataclass
 
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from pydantic import SecretStr
 
-from openoperator import Agent, Controller
+from openoperator import LLM, Agent, Controller
 from openoperator.browser.browser import Browser, BrowserConfig
 
 load_dotenv()
@@ -58,7 +56,7 @@ config = TwitterConfig(
 
 
 def create_twitter_agent(config: TwitterConfig) -> Agent:
-    llm = ChatOpenAI(model=config.model, api_key=SecretStr(config.openai_api_key))
+    llm = LLM(model='openai/gpt-4o')
 
     browser = Browser(
         config=BrowserConfig(

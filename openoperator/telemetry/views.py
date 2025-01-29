@@ -42,8 +42,8 @@ class AgentRunTelemetryEvent(BaseTelemetryEvent):
     agent_id: str
     use_vision: bool
     task: str
+    model_provider: str
     model_name: str
-    chat_model_library: str
     version: str
     source: str
     name: str = 'agent_run'

@@ -5,7 +5,6 @@ import logging
 from datetime import datetime
 from typing import List, Optional, Type
 
-from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import (
     AIMessage,
     BaseMessage,
@@ -25,7 +24,6 @@ logger = logging.getLogger(__name__)
 class MessageManager:
     def __init__(
         self,
-        llm: BaseChatModel,
         task: str,
         action_descriptions: str,
         system_prompt_class: Type[SystemPrompt],
@@ -37,7 +35,6 @@ class MessageManager:
         max_actions_per_step: int = 10,
         initial_context: Optional[str] = None,
     ):
-        self.llm = llm
         self.system_prompt_class = system_prompt_class
         self.max_input_tokens = max_input_tokens
         self.history = MessageHistory()  # will be overwritten by helper
