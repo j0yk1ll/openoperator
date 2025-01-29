@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import uuid
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
@@ -172,14 +173,41 @@ class Agent:
 
     def _set_tool_calling_method(self, tool_calling_method: Optional[str]) -> Optional[str]:
         if tool_calling_method == 'auto':
-            if self.llm.model_provider == 'gemini':
-                return None
-            elif self.llm.model_provider == 'openai':
-                return 'function_calling'
-            elif self.llm.model_provider == 'azure':
+            # Providers that support tool calling
+            providers_with_function_calling = {
+                'anthropic',  # ChatAnthropic
+                'fireworks_ai',  # ChatFireworks
+                'azure',  # AzureChatOpenAI
+                'openai',  # ChatOpenAI
+                'together_ai',  # ChatTogether
+                'vertex_ai',  # ChatVertexAI
+                'gemini',  # ChatGoogleGenerativeAI
+                'groq',  # ChatGroq
+                'bedrock',  # ChatBedrock
+                'huggingface',  # ChatHuggingFace
+                'ollama',  # ChatOllama
+            }
+
+            # Providers that support tool calling with JSON mode
+            providers_with_json_mode = {
+                'openai',  # ChatOpenAI
+                'azure',  # AzureChatOpenAI
+                'fireworks_ai',  # ChatFireworks
+                'together_ai',  # ChatTogether
+                'groq',  # ChatGroq
+                'ollama',  # ChatOllama
+            }
+
+            # Determine the appropriate tool calling method
+            if self.llm.model_provider in providers_with_json_mode:
+                return 'json_mode'
+            elif self.llm.model_provider in providers_with_function_calling:
                 return 'function_calling'
             else:
                 return None
+        else:
+            # Return the specified tool calling method if not set to 'auto'
+            return tool_calling_method
 
     @time_execution_async('--step')
     async def _step(self, step_info: Optional[AgentStepInfo] = None) -> None:
@@ -330,8 +358,26 @@ class Agent:
             parsed: AgentOutput | None = response['parsed']
 
         if parsed is None:
-            logger.error(f"Could not parse response {response['raw']}: {response['parsing_error']}")
-            raise ValueError('Could not parse response.')
+            # Try manual parsing
+            raw: BaseMessage = response['raw']
+            logger.debug('Automatic response parsing failed. Trying manual parsing.')
+
+            if not isinstance(raw.content, str):
+                raise ValueError('Unexpected response content type.')
+
+            try:
+                obj = json.loads(raw.content)
+                parameters = obj['parameters']
+            except Exception as e:
+                logger.error(f'{str(e)}')
+                raise ValueError('Could not parse response.')
+
+            try:
+                parsed = AgentOutput.model_validate(parameters)
+            except ValidationError as e:
+                for error in e.errors():
+                    logger.error(f"{error['loc']} {error['msg']}")
+                raise ValueError('Could not parse response.')
 
         # Cut the number of actions to max_actions_per_step
         parsed.action = parsed.action[: self.max_actions_per_step]
