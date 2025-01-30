@@ -36,7 +36,7 @@ import os
 
 from dotenv import load_dotenv
 
-from examples.integrations.discord_api import DiscordBot
+from examples.integrations.discord.discord_api import DiscordBot
 from openoperator import LLM, BrowserConfig
 
 load_dotenv()
@@ -49,7 +49,7 @@ if not bot_token:
 llm = LLM(model='openai/gpt-4o')
 
 bot = DiscordBot(
-    llm=llm,  # required; instance of BaseChatModel
+    llm=llm,  # required; instance of LLM
     prefix='$bu',  # optional; prefix of messages to trigger openoperator, defaults to "$bu"
     ack=True,  # optional; whether to acknowledge task receipt with a message, defaults to False
     browser_config=BrowserConfig(
