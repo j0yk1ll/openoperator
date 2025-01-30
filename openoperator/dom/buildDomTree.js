@@ -137,6 +137,11 @@
 
     // Helper function to check if element is interactive
     function isInteractiveElement(element) {
+        // Immediately return false for body tag
+        if (element.tagName.toLowerCase() === 'body') {
+            return false;
+        }
+
         // Base interactive elements and roles
         const interactiveElements = new Set([
             'a', 'button', 'details', 'embed', 'input', 'label',
@@ -164,7 +169,7 @@
             interactiveElements.has(tagName) ||
             interactiveRoles.has(role) ||
             interactiveRoles.has(ariaRole) ||
-            (tabIndex !== null && tabIndex !== '-1') ||
+            (tabIndex !== null && tabIndex !== '-1' && element.parentElement?.tagName.toLowerCase() !== 'body') ||
             element.getAttribute('data-action') === 'a-dropdown-select' ||
             element.getAttribute('data-action') === 'a-dropdown-button';
 
@@ -239,6 +244,11 @@
         // Check if element is draggable
         const isDraggable = element.draggable ||
             element.getAttribute('draggable') === 'true';
+
+        // Additional check to prevent body from being marked as interactive
+        if (element.tagName.toLowerCase() === 'body' || element.parentElement?.tagName.toLowerCase() === 'body') {
+            return false;
+        }
 
         return hasAriaProps ||
             // hasClickStyling ||
