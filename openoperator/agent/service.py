@@ -89,6 +89,12 @@ class Agent:
         self.tasks = []
         self.current_task_index = 0  # Tracks which task is being executed
 
+        # Prevent downstream errors
+        models_without_vision = ['deepseek-chat', 'deepseek-reasoner', 'llama-3.3-70b-versatile', 'deepseek-r1-distill-llama-70b']
+        if llm.model_name in models_without_vision:
+            logger.info('Disabled vision because the model does not support it.')
+            use_vision = False
+
         self.use_vision = use_vision
         self.llm = llm
         self._last_result = None
@@ -323,9 +329,7 @@ class Agent:
     async def get_next_action(self, input_messages: list[BaseMessage]) -> AgentOutput:
         """Get next action from LLM based on current state"""
 
-        if self.llm.model_provider == 'deepseek' and (
-            self.llm.model_name == 'deepseek-reasoner' or self.llm.model_name.startswith('deepseek-r1')
-        ):
+        if self.llm.model_provider == 'deepseek':
             converted_input_messages = self.message_manager.convert_messages_for_non_function_calling_models(input_messages)
             merged_input_messages = self.message_manager.merge_successive_human_messages(converted_input_messages)
             output = self.llm.model.invoke(merged_input_messages)
