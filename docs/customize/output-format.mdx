@@ -8,6 +8,9 @@ icon: "code"
 With [this example](https://github.com/j0yk1ll/openoperator/blob/main/examples/features/custom_output.py) you can define what output format the agent should return to you.
 
 ```python
+import asyncio
+from openoperator import Agent, LLM, Controller
+
 from pydantic import BaseModel
 # Define the output format as a Pydantic model
 class Post(BaseModel):
@@ -25,9 +28,10 @@ controller = Controller(output_model=Posts)
 
 
 async def main():
-	task = 'Go to hackernews show hn and give me the first  5 posts'
-	model = ChatOpenAI(model='gpt-4o')
-	agent = Agent(task=task, llm=model, controller=controller)
+	llm = LLM(model='openai/gpt-4o')
+	agent = Agent(llm=llm, controller=controller)
+
+	agent.add_task('Go to hackernews show hn and give me the first  5 posts')
 
 	history = await agent.run()
 

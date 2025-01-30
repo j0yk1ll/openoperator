@@ -17,9 +17,9 @@ You can connect the agent to your real Chrome browser instance, allowing it to a
 To connect to your real Chrome browser, you'll need to specify the path to your Chrome executable when creating the Browser instance:
 
 ```python
-from openoperator import Agent, Browser, BrowserConfig
-from langchain_openai import ChatOpenAI
+from openoperator import Agent, Browser, BrowserConfig, LLM
 import asyncio
+
 # Configure the browser to connect to your Chrome instance
 browser = Browser(
     config=BrowserConfig(
@@ -32,12 +32,14 @@ browser = Browser(
 
 # Create the agent with your configured browser
 agent = Agent(
-    task="Your task here",
     llm=ChatOpenAI(model='gpt-4o'),
     browser=browser,
 )
 
 async def main():
+
+    agent.add_task("Open the most recent Hacksmith Industries video on youtube.")
+
     await agent.run()
 
     input('Press Enter to close the browser...')

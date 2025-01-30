@@ -11,27 +11,27 @@ The `Agent` class is the core component of OpenOperator that handles browser aut
 ## Basic Settings
 
 ```python
-from openoperator import Agent
-from langchain_openai import ChatOpenAI
+from openoperator import Agent, LLM
 
-agent = Agent(
-    task="Search for latest news about AI",
-    llm=ChatOpenAI(model="gpt-4o"),
-)
+# Define LLM
+llm=LLM(model="openai/gpt-4o")
+
+# Create Agent
+agent = Agent(llm=llm)
+
+# Add a task
+agent.add_task(Search for latest news about AI")
 ```
-
-### Required Parameters
-
-- `task`: The instruction for the agent to execute
-- `llm`: A LangChain chat model instance. See <a href="/customize/langchain-models">LangChain Models</a> for supported models.
 
 ## Agent Behavior
 
 Control how the agent operates:
 
 ```python
+# Define LLM
+llm=LLM(model="openai/gpt-4o")
+
 agent = Agent(
-    task="your task",
     llm=llm,
     controller=custom_controller,  # For custom tool calling
     use_vision=True,              # Enable vision capabilities
@@ -47,7 +47,6 @@ agent = Agent(
   - Disable to reduce costs or use models without vision support
   - For GPT-4o, image processing costs approximately 800-1000 tokens (~$0.002 USD) per image (but this depends on the defined screen size)
 - `save_conversation_path`: Path to save the complete conversation history. Useful for debugging.
-- `system_prompt_class`: Custom system prompt class. See <a href="/customize/system-prompt">System Prompt</a> for customization options.
 
 <Note>
   Vision capabilities are recommended for better web interaction understanding,
@@ -67,14 +66,20 @@ You can configure how the agent interacts with the browser. To see more `Browser
 from openoperator import Agent, Browser
 from browser_use.browser.context import BrowserContext
 
+# Define LLM
+llm=LLM(model="openai/gpt-4o")
+
 # Reuse existing browser
 browser = Browser()
 agent = Agent(
-    task=task1,
     llm=llm,
     browser=browser  # Browser instance will be reused
 )
 
+# Add a task
+agent.add_task("What's the mass of pluto?")
+
+# Run agent
 await agent.run()
 
 # Manually close the browser
@@ -93,13 +98,18 @@ await browser.close()
 from openoperator import Agent, Browser
 from playwright.async_api import BrowserContext
 
+# Define LLM
+llm=LLM(model="openai/gpt-4o")
+
 # Use specific browser context (preferred method)
 async with await browser.new_context() as context:
     agent = Agent(
-        task=task2,
         llm=llm,
         browser_context=context  # Use persistent context
     )
+
+    # Add a task
+    agent.add_task("Summarize today's top 3 news articles.")
 
     # Run the agent
     await agent.run()
@@ -164,11 +174,10 @@ The `AgentHistoryList` provides many helper methods to analyze the execution:
 
 
 
-## Run initial actions without LLM
+## Run initial actions
 With [this example](https://github.com/j0yk1ll/openoperator/blob/main/examples/features/initial_actions.py) you can run initial actions without the LLM.
 Specify the action as a dictionary where the key is the action name and the value is the action parameters. You can find all our actions in the [Controller](https://github.com/j0yk1ll/openoperator/blob/main/openoperator/controller/service.py) source code.
 ```python
-
 initial_actions = [
 	{'open_tab': {'url': 'https://www.google.com'}},
 	{'open_tab': {'url': 'https://en.wikipedia.org/wiki/Randomness'}},
@@ -176,8 +185,7 @@ initial_actions = [
 	{'extract_content': {'include_links': False}},
 ]
 agent = Agent(
-	task='What theories are displayed on the page?',
 	initial_actions=initial_actions,
-	llm=llm,
+	llm=llm
 )
 ```

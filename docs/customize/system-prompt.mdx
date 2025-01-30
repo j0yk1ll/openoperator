@@ -19,7 +19,7 @@ You can customize the system prompt by extending the `SystemPrompt` class. Inter
 Create a custom system prompt by inheriting from the base class.
 
 ```python
-from openoperator import Agent, SystemPrompt
+from openoperator import SystemPrompt
 
 class MySystemPrompt(SystemPrompt):
     def important_rules(self) -> str:
@@ -41,15 +41,14 @@ class MySystemPrompt(SystemPrompt):
 Apply your custom system prompt when creating an agent:
 
 ```python
-from langchain_openai import ChatOpenAI
+from openoperator import Agent, LLM
 
 # Initialize the model
-model = ChatOpenAI(model='gpt-4o')
+llm = LLM(model='openai/gpt-4o')
 
 # Create agent with custom system prompt
 agent = Agent(
-    task="Your task here",
-    llm=model,
+    llm=llm,
     system_prompt_class=MySystemPrompt
 )
 ```

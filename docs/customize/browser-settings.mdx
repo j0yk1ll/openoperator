@@ -105,6 +105,7 @@ config = BrowserConfig(
 The `BrowserContextConfig` class controls settings for individual browser contexts.
 
 ```python
+from openoperator import Agent, LLM
 from openoperator.browser.context import BrowserContextConfig
 
 config = BrowserContextConfig(
@@ -121,12 +122,17 @@ config = BrowserContextConfig(
 browser = Browser()
 context = BrowserContext(browser=browser, config=config)
 
+llm = LLM("openai/gpt-4o")
 
 async def run_search():
 	agent = Agent(
 		browser_context=context,
-		task='Your task',
-		llm=llm)
+		llm=llm
+  )
+
+  agent.add_task("Search for the mass of the sun")
+
+  await agent.run()
 ```
 
 ## Configuration Options

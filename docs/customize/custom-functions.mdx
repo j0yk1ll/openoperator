@@ -27,7 +27,6 @@ def ask_human(question: str) -> str:
 ```python
 # ... then pass controller to the agent
 agent = Agent(
-    task=task,
     llm=llm,
     controller=controller
 )
@@ -94,19 +93,21 @@ controller = Controller()
 # ... register actions to the controller
 
 agent = Agent(
-    task="Go to website X and find the latest news",
     llm=llm,
     controller=controller
 )
+
+agent.add_task("Go to website X and find the latest news")
 
 # Run the agent
 await agent.run()
 
 agent2 = Agent(
-    task="Go to website Y and find the latest news",
     llm=llm,
     controller=controller
 )
+
+agent2.add_task("Go to website Y and find the latest news")
 
 await agent2.run()
 ```
