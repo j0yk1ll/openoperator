@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from datetime import datetime
 from typing import List, Optional, Type
 
@@ -305,7 +306,10 @@ class MessageManager:
             if isinstance(message, HumanMessage):
                 streak += 1
                 if streak > 1:
-                    merged_messages[-1].content += message.content
+                    if isinstance(message.content, list):
+                        merged_messages[-1].content += message.content[0]['text']  # type: ignore
+                    else:
+                        merged_messages[-1].content += message.content
                 else:
                     merged_messages.append(message)
             else:
@@ -316,11 +320,10 @@ class MessageManager:
     def extract_json_from_model_output(self, content: str) -> dict:
         """Extract JSON from model output, handling code-block-wrapped JSON."""
         try:
-            if content.startswith('```'):
-                content = content.split('```')[1]
-                if '\n' in content:
-                    content = content.split('\n', 1)[1]
+            match = re.search(r'```(?:json)?\n(.*?)```', content, re.DOTALL)
+            if match:
+                content = match.group(1).strip()
             return json.loads(content)
         except json.JSONDecodeError as e:
-            logger.warning(f'Failed to parse model output: {e}')
+            logger.warning(f'Failed to parse model output {content}: {str(e)}')
             raise ValueError('Could not parse response.')
