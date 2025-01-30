@@ -49,7 +49,10 @@ dev = [
 ]
 examples = [
     "discord==2.3.2",
+    "fastapi>=0.115.7",
     "pypdf2==3.0.1",
+    "slack-sdk>=3.34.0",
+    "uvicorn>=0.34.0",
 ]
 
 [tool.ruff]
