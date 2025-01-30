@@ -4,7 +4,7 @@ description = "Operate any browser, desktop, device or robot."
 authors = [
     { name = "Kevin Raetz" }
 ]
-version = "0.1.0"
+version = "0.1.1"
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
