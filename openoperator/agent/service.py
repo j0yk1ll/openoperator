@@ -7,6 +7,7 @@ import uuid
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
 from dotenv import load_dotenv
+from google.api_core.exceptions import ResourceExhausted
 from langchain_core.messages import BaseMessage
 from lmnr import observe
 from openai import RateLimitError
@@ -283,7 +284,7 @@ class Agent:
                 error_msg += '\n\nReturn a valid JSON object with the required fields.'
 
             self.consecutive_failures += 1
-        elif isinstance(error, RateLimitError):
+        elif isinstance(error, RateLimitError) or isinstance(error, ResourceExhausted):
             logger.warning(f'{prefix}{error_msg}')
             await asyncio.sleep(self.retry_delay)
             self.consecutive_failures += 1
