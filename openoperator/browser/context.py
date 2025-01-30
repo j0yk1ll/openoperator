@@ -206,23 +206,7 @@ class BrowserContext:
         page = await context.new_page()
 
         # Instead of calling _update_state(), create an empty initial state
-        initial_state = BrowserState(
-            element_tree=DOMElementNode(
-                tag_name='root',
-                is_visible=True,
-                parent=None,
-                xpath='',
-                attributes={},
-                children=[],
-            ),
-            selector_map={},
-            url=page.url,
-            title='',
-            screenshot=None,
-            tabs=[],
-            pixels_above=0,
-            pixels_below=0,
-        )
+        initial_state = self._get_initial_state(page)
 
         self.session = BrowserSession(
             context=context,
@@ -1119,3 +1103,35 @@ class BrowserContext:
         pixels_above = scroll_y
         pixels_below = total_height - (scroll_y + viewport_height)
         return pixels_above, pixels_below
+
+    async def reset_context(self):
+        """Reset the browser session
+        Call this when you don't want to kill the context but just kill the state
+        """
+        # close all tabs and clear cached state
+        session = await self.get_session()
+
+        pages = session.context.pages
+        for page in pages:
+            await page.close()
+
+        session.cached_state = self._get_initial_state()
+        session.current_page = await session.context.new_page()
+
+    def _get_initial_state(self, page: Optional[Page] = None) -> BrowserState:
+        """Get the initial state of the browser"""
+        return BrowserState(
+            element_tree=DOMElementNode(
+                tag_name='root',
+                is_visible=True,
+                parent=None,
+                xpath='',
+                attributes={},
+                children=[],
+            ),
+            selector_map={},
+            url=page.url if page else '',
+            title='',
+            screenshot=None,
+            tabs=[],
+        )
