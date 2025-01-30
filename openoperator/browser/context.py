@@ -943,20 +943,24 @@ class BrowserContext:
                 and navigation scenarios."""
                 if self.config.save_downloads_path:
                     try:
-                        # Try short-timeout expect_download to detect a file download has been been triggered
+                        # Expect download
                         async with page.expect_download(timeout=5000) as download_info:
                             await click_func()
                         download = await download_info.value
 
-                        # If the download succeeds, save to disk
-                        download_path = os.path.join(self.config.save_downloads_path, download.suggested_filename)
+                        # Determine file path
+                        suggested_filename = download.suggested_filename
+                        unique_filename = await self._get_unique_filename(self.config.save_downloads_path, suggested_filename)
+                        download_path = os.path.join(self.config.save_downloads_path, unique_filename)
+
+                        # Save the file
                         await download.save_as(download_path)
                         logger.debug(f'Download triggered. Saved file to: {download_path}')
 
                         return download_path
 
                     except TimeoutError:
-                        # If no download is triggered, treat as normal click
+                        # If no download occurs, treat as normal click
                         logger.debug('No download triggered within timeout. Checking navigation...')
                         await page.wait_for_load_state()
                         await self._check_and_handle_navigation(page)
@@ -1135,3 +1139,15 @@ class BrowserContext:
             screenshot=None,
             tabs=[],
         )
+
+    async def _get_unique_filename(self, directory, filename):
+        """Generate a unique filename by appending (1), (2), etc., if a file already exists."""
+        base, ext = os.path.splitext(filename)
+        counter = 1
+        new_filename = filename
+
+        while os.path.exists(os.path.join(directory, new_filename)):
+            new_filename = f'{base} ({counter}){ext}'
+            counter += 1
+
+        return new_filename
