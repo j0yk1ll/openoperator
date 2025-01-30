@@ -51,7 +51,8 @@
       "pages": [
         "development/local-setup",
         "development/contribution-guide",
-        "development/telemetry"
+        "development/telemetry",
+        "development/observability"
       ]
     }
   ],
