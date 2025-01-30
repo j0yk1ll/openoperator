@@ -10,6 +10,7 @@ class HashedDomElement:
 
     branch_path_hash: str
     attributes_hash: str
+    xpath_hash: str
     # text_hash: str
 
 

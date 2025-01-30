@@ -60,17 +60,19 @@ class HistoryTreeProcessor:
     ) -> HashedDomElement:
         branch_path_hash = HistoryTreeProcessor._parent_branch_path_hash(dom_history_element.entire_parent_branch_path)
         attributes_hash = HistoryTreeProcessor._attributes_hash(dom_history_element.attributes)
+        xpath_hash = HistoryTreeProcessor._xpath_hash(dom_history_element.xpath)
 
-        return HashedDomElement(branch_path_hash, attributes_hash)
+        return HashedDomElement(branch_path_hash, attributes_hash, xpath_hash)
 
     @staticmethod
     def _hash_dom_element(dom_element: DOMElementNode) -> HashedDomElement:
         parent_branch_path = HistoryTreeProcessor._get_parent_branch_path(dom_element)
         branch_path_hash = HistoryTreeProcessor._parent_branch_path_hash(parent_branch_path)
         attributes_hash = HistoryTreeProcessor._attributes_hash(dom_element.attributes)
+        xpath_hash = HistoryTreeProcessor._xpath_hash(dom_element.xpath)
         # text_hash = DomTreeProcessor._text_hash(dom_element)
 
-        return HashedDomElement(branch_path_hash, attributes_hash)
+        return HashedDomElement(branch_path_hash, attributes_hash, xpath_hash)
 
     @staticmethod
     def _get_parent_branch_path(dom_element: DOMElementNode) -> list[str]:
@@ -93,6 +95,10 @@ class HistoryTreeProcessor:
     def _attributes_hash(attributes: dict[str, str]) -> str:
         attributes_string = ''.join(f'{key}={value}' for key, value in attributes.items())
         return hashlib.sha256(attributes_string.encode()).hexdigest()
+
+    @staticmethod
+    def _xpath_hash(xpath: str) -> str:
+        return hashlib.sha256(xpath.encode()).hexdigest()
 
     @staticmethod
     def _text_hash(dom_element: DOMElementNode) -> str:
