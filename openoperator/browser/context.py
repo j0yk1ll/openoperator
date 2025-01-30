@@ -900,7 +900,7 @@ class BrowserContext:
             logger.error(f'Failed to locate element: {str(e)}')
             return None
 
-    async def _input_text_element_node(self, element_node: DOMElementNode, text: str):
+    async def input_text_element_node(self, element_node: DOMElementNode, text: str):
         try:
             # Highlight before typing
             if element_node.highlight_index is not None:
@@ -920,7 +920,7 @@ class BrowserContext:
         except Exception as e:
             raise Exception(f'Failed to input text into element: {repr(element_node)}. Error: {str(e)}')
 
-    async def _click_element_node(self, element_node: DOMElementNode) -> Optional[str]:
+    async def click_element_node(self, element_node: DOMElementNode) -> Optional[str]:
         """
         Click an element using a located DOMElementNode. Detects if a download
         is triggered. If it is, saves the download to the configured path and return the download path;
@@ -938,7 +938,7 @@ class BrowserContext:
             if element is None:
                 raise Exception(f'Element not found: {repr(element_node)}')
 
-            async def perform_click(click_func):
+            async def perform_click(click_func) -> Optional[str]:
                 """Performs the actual click, handling both download
                 and navigation scenarios."""
                 if self.config.save_downloads_path:

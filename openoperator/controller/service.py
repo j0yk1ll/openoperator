@@ -99,12 +99,12 @@ class Controller:
             msg = None
 
             try:
-                download_path = await browser._click_element_node(element_node)
+                download_path = await browser.click_element_node(element_node)
+
+                msg = f'🖱️  Clicked element with index {params.index}: {element_node.get_all_text_till_next_clickable_element(max_depth=2)}'
 
                 if download_path:
                     msg = f'💾  Downloaded file to {download_path}'
-                else:
-                    msg = f'🖱️  Clicked button with index {params.index}: {element_node.get_all_text_till_next_clickable_element(max_depth=2)}'
 
                 logger.info(msg)
                 logger.debug(f'Element xpath: {element_node.xpath}')
@@ -131,7 +131,7 @@ class Controller:
                 raise Exception(f'Element index {params.index} does not exist - retry or use alternative actions')
 
             element_node = state.selector_map[params.index]
-            await browser._input_text_element_node(element_node, params.text)
+            await browser.input_text_element_node(element_node, params.text)
             msg = f'⌨️  Input "{params.text}" into index {params.index}'
             logger.info(msg)
             logger.debug(f'Element xpath: {element_node.xpath}')
