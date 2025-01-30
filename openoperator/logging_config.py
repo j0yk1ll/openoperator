@@ -122,7 +122,7 @@ def setup_logging():
             os.makedirs(directory, exist_ok=True)
 
         # Create file handler
-        file_handler = logging.FileHandler(log_file_path)
+        file_handler = logging.FileHandler(log_file_path, mode='w')
 
         # Set formatter for file with timestamp
         file_formatter = logging.Formatter('%(asctime)s - %(levelname)-8s [%(name)s] %(message)s')
