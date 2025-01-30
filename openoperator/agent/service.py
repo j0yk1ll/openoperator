@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 import uuid
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
@@ -322,16 +323,20 @@ class Agent:
     async def get_next_action(self, input_messages: list[BaseMessage]) -> AgentOutput:
         """Get next action from LLM based on current state"""
 
-        if self.llm.model_provider == 'deepseek' and self.llm.model_name == 'deepseek-reasoner':
+        if self.llm.model_provider == 'deepseek' and (
+            self.llm.model_name == 'deepseek-reasoner' or self.llm.model_name.startswith('deepseek-r1')
+        ):
             converted_input_messages = self.message_manager.convert_messages_for_non_function_calling_models(input_messages)
             merged_input_messages = self.message_manager.merge_successive_human_messages(converted_input_messages)
             output = self.llm.model.invoke(merged_input_messages)
+            if isinstance(output.content, str):
+                output.content = self._remove_think_tags(output.content)
             # TODO: currently invoke does not return reasoning_content, we should override invoke
             try:
                 parsed_json = self.message_manager.extract_json_from_model_output(output.content)  # type: ignore
                 parsed = self.AgentOutput(**parsed_json)
             except (ValueError, ValidationError) as e:
-                logger.warning(f'Failed to parse model output: {str(e)}')
+                logger.warning(f'Failed to parse model output {output}: {str(e)}')
                 raise ValueError('Could not parse response.')
         elif self.tool_calling_method is None:
             structured_llm = self.llm.model.with_structured_output(self.AgentOutput, include_raw=True)
@@ -659,3 +664,8 @@ class Agent:
             converted_actions.append(action_model)
 
         return converted_actions
+
+    def _remove_think_tags(self, text: str) -> str:
+        """Remove think tags from text"""
+        think_tags = re.compile(r'<think>.*?</think>', re.DOTALL)
+        return re.sub(think_tags, '', text)
