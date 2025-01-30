@@ -181,27 +181,13 @@ class Agent:
                 'openai',  # ChatOpenAI
                 'together_ai',  # ChatTogether
                 'vertex_ai',  # ChatVertexAI
-                'gemini',  # ChatGoogleGenerativeAI
                 'groq',  # ChatGroq
                 'bedrock',  # ChatBedrock
                 'huggingface',  # ChatHuggingFace
                 'ollama',  # ChatOllama
             }
 
-            # Providers that support tool calling with JSON mode
-            providers_with_json_mode = {
-                'openai',  # ChatOpenAI
-                'azure',  # AzureChatOpenAI
-                'fireworks_ai',  # ChatFireworks
-                'together_ai',  # ChatTogether
-                'groq',  # ChatGroq
-                'ollama',  # ChatOllama
-            }
-
-            # Determine the appropriate tool calling method
-            if self.llm.model_provider in providers_with_json_mode:
-                return 'json_mode'
-            elif self.llm.model_provider in providers_with_function_calling:
+            if self.llm.model_provider in providers_with_function_calling:
                 return 'function_calling'
             else:
                 return None
