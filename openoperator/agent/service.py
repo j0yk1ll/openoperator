@@ -76,13 +76,12 @@ class Agent:
         ],
         max_error_length: int = 400,
         max_actions_per_step: int = 10,
-        tool_call_in_content: bool = True,
         initial_actions: Optional[List[Dict[str, Dict[str, Any]]]] = None,
-        # Cloud Callbacks
-        register_new_step_callback: Callable[['BrowserState', 'AgentOutput', int], None] | None = None,
-        register_done_callback: Callable[['AgentHistoryList'], None] | None = None,
         tool_calling_method: Optional[str] = 'auto',
-        reset_messages_on_new_task: bool = False,
+        reset_messages_on_new_task: bool = True,
+        # Callbacks
+        on_new_step: Callable[['BrowserState', 'AgentOutput', int], None] | None = None,
+        on_done: Callable[['AgentHistoryList'], None] | None = None,
     ):
         self.agent_id = str(uuid.uuid4())  # unique identifier for the agent
 
@@ -136,8 +135,8 @@ class Agent:
         self.tool_calling_method = self._set_tool_calling_method(tool_calling_method)
 
         # Step callback
-        self.register_new_step_callback = register_new_step_callback
-        self.register_done_callback = register_done_callback
+        self.on_new_step = on_new_step
+        self.on_done = on_done
 
         # Tracking variables
         self.history: AgentHistoryList = AgentHistoryList(history=[])
@@ -224,8 +223,8 @@ class Agent:
             try:
                 model_output = await self.get_next_action(input_messages)
 
-                if self.register_new_step_callback:
-                    self.register_new_step_callback(state, model_output, self.n_steps)
+                if self.on_new_step:
+                    self.on_new_step(state, model_output, self.n_steps)
 
                 self.message_manager._remove_last_state_message()  # remove large state chunk from chat
 
@@ -439,9 +438,10 @@ class Agent:
             initial_context=self.initial_context,
         )
 
+        should_stop = False
         overall_history = AgentHistoryList(history=[])
         try:
-            while self.current_task_index < len(self.tasks):
+            while self.current_task_index < len(self.tasks) and not should_stop:
                 task = self.tasks[self.current_task_index]
                 idx = self.current_task_index + 1
                 logger.info('\n===============================')
@@ -472,12 +472,13 @@ class Agent:
                     self._last_result = result
 
                 for _ in range(max_steps):
-                    if self._too_many_failures():
+                    if self._too_many_failures() or self._stopped:
+                        should_stop = True
                         break
 
-                    # Check control flags before each step
-                    if not await self._handle_control_flags():
-                        break
+                    #  Handle pause before step
+                    while self._paused:
+                        await asyncio.sleep(0.2)  # Small delay to prevent CPU spinning
 
                     await self._step()
 
@@ -488,8 +489,8 @@ class Agent:
                                 continue
 
                         logger.info(f'✅ Sub-task completed successfully: {task}')
-                        if self.register_done_callback:
-                            self.register_done_callback(self.history)
+                        if self.on_done:
+                            self.on_done(self.history)
                         break
                 else:
                     logger.info(f'❌ Failed to complete sub-task in maximum steps: {task}')
@@ -526,18 +527,6 @@ class Agent:
             logger.error(f'❌ Stopping due to {self.max_failures} consecutive failures')
             return True
         return False
-
-    async def _handle_control_flags(self) -> bool:
-        """Handle pause and stop flags. Returns True if execution should continue."""
-        if self._stopped:
-            logger.info('Agent stopped')
-            return False
-
-        while self._paused:
-            await asyncio.sleep(0.2)  # Small delay to prevent CPU spinning
-            if self._stopped:  # Allow stopping while paused
-                return False
-        return True
 
     async def _validate_output(self, task: str) -> bool:
         """Validate the output of the last action is what the user wanted"""
