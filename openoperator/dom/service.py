@@ -4,12 +4,15 @@ from typing import Optional
 
 from playwright.async_api import Page
 
+from openoperator.dom.history_tree_processor.view import Coordinates
 from openoperator.dom.views import (
+    CoordinateSet,
     DOMBaseNode,
     DOMElementNode,
     DOMState,
     DOMTextNode,
     SelectorMap,
+    ViewportInfo,
 )
 
 logger = logging.getLogger(__name__)
@@ -87,6 +90,38 @@ class DomService:
 
         tag_name = node_data['tagName']
 
+        # Parse coordinates if they exist
+        viewport_coordinates = None
+        page_coordinates = None
+        viewport_info = None
+        if 'viewportCoordinates' in node_data:
+            viewport_coordinates = CoordinateSet(
+                top_left=Coordinates(**node_data['viewportCoordinates']['topLeft']),
+                top_right=Coordinates(**node_data['viewportCoordinates']['topRight']),
+                bottom_left=Coordinates(**node_data['viewportCoordinates']['bottomLeft']),
+                bottom_right=Coordinates(**node_data['viewportCoordinates']['bottomRight']),
+                center=Coordinates(**node_data['viewportCoordinates']['center']),
+                width=node_data['viewportCoordinates']['width'],
+                height=node_data['viewportCoordinates']['height'],
+            )
+        if 'pageCoordinates' in node_data:
+            page_coordinates = CoordinateSet(
+                top_left=Coordinates(**node_data['pageCoordinates']['topLeft']),
+                top_right=Coordinates(**node_data['pageCoordinates']['topRight']),
+                bottom_left=Coordinates(**node_data['pageCoordinates']['bottomLeft']),
+                bottom_right=Coordinates(**node_data['pageCoordinates']['bottomRight']),
+                center=Coordinates(**node_data['pageCoordinates']['center']),
+                width=node_data['pageCoordinates']['width'],
+                height=node_data['pageCoordinates']['height'],
+            )
+        if 'viewport' in node_data:
+            viewport_info = ViewportInfo(
+                scroll_x=node_data['viewport']['scrollX'],
+                scroll_y=node_data['viewport']['scrollY'],
+                width=node_data['viewport']['width'],
+                height=node_data['viewport']['height'],
+            )
+
         element_node = DOMElementNode(
             tag_name=tag_name,
             xpath=node_data['xpath'],
@@ -98,6 +133,9 @@ class DomService:
             highlight_index=node_data.get('highlightIndex'),
             shadow_root=node_data.get('shadowRoot', False),
             parent=parent,
+            viewport_coordinates=viewport_coordinates,
+            page_coordinates=page_coordinates,
+            viewport_info=viewport_info,
         )
 
         children: list[DOMBaseNode] = []

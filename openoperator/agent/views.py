@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import traceback
 from pathlib import Path
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, List, Optional, Type
 
 from openai import RateLimitError
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, create_model
@@ -65,14 +65,14 @@ class AgentOutput(BaseModel):
 class AgentHistory(BaseModel):
     """History item for agent actions"""
 
-    model_output: AgentOutput | None
-    result: list[ActionResult]
+    model_output: Optional[AgentOutput]
+    result: List[ActionResult]
     state: BrowserStateHistory
 
     model_config = ConfigDict(arbitrary_types_allowed=True, protected_namespaces=())
 
     @staticmethod
-    def get_interacted_element(model_output: AgentOutput, selector_map: SelectorMap) -> list[DOMHistoryElement | None]:
+    def get_interacted_element(model_output: AgentOutput, selector_map: SelectorMap) -> List[Optional[DOMHistoryElement]]:
         elements = []
         for action in model_output.action:
             index = action.get_index()
@@ -209,8 +209,9 @@ class AgentHistoryList(BaseModel):
 
         for h in self.history:
             if h.model_output:
-                for action in h.model_output.action:
+                for action, interacted_element in zip(h.model_output.action, h.state.interacted_element):
                     output = action.model_dump(exclude_none=True)
+                    output['interacted_element'] = interacted_element
                     outputs.append(output)
         return outputs
 

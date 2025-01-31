@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import TYPE_CHECKING, Dict, List, Optional
 
-from openoperator.dom.history_tree_processor.view import HashedDomElement
+from openoperator.dom.history_tree_processor.view import CoordinateSet, HashedDomElement, ViewportInfo
 
 # Avoid circular import issues
 if TYPE_CHECKING:
@@ -45,6 +45,9 @@ class DOMElementNode(DOMBaseNode):
     is_top_element: bool = False
     shadow_root: bool = False
     highlight_index: Optional[int] = None
+    viewport_coordinates: Optional[CoordinateSet] = None
+    page_coordinates: Optional[CoordinateSet] = None
+    viewport_info: Optional[ViewportInfo] = None
 
     def __repr__(self) -> str:
         tag_str = f'<{self.tag_name}'
@@ -148,6 +151,11 @@ class DOMElementNode(DOMBaseNode):
                         return result
 
         return None
+
+    def get_advanced_css_selector(self) -> str:
+        from openoperator.browser.context import BrowserContext
+
+        return BrowserContext._enhanced_css_selector_for_element(self)
 
 
 class ElementTreeSerializer:

@@ -20,6 +20,7 @@ class HistoryTreeProcessor:
         dom_element: DOMElementNode,
     ) -> DOMHistoryElement:
         parent_branch_path = HistoryTreeProcessor._get_parent_branch_path(dom_element)
+        css_selector = dom_element.get_advanced_css_selector()
         return DOMHistoryElement(
             dom_element.tag_name,
             dom_element.xpath,
@@ -27,6 +28,10 @@ class HistoryTreeProcessor:
             parent_branch_path,
             dom_element.attributes,
             dom_element.shadow_root,
+            css_selector=css_selector,
+            page_coordinates=dom_element.page_coordinates,
+            viewport_coordinates=dom_element.viewport_coordinates,
+            viewport_info=dom_element.viewport_info,
         )
 
     @staticmethod
