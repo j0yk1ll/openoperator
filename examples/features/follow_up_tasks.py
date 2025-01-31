@@ -18,12 +18,8 @@ async def main():
     await agent.run()
 
     agent.add_task('Find the emails for each founder')
-    agent.add_tasks(
-        [
-            'Draft a short thank you message for each',
-            'Send each founder a thank you email',
-        ]
-    )
+    agent.add_task('Draft a short thank you message for each')
+    agent.add_task('Send each founder a thank you email')
 
     await agent.run()
 

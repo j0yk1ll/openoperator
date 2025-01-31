@@ -1,7 +1,8 @@
 import asyncio
 import json
 import logging
-from typing import Optional, Type
+import re
+from typing import Dict, Optional, Type
 
 from main_content_extractor import MainContentExtractor
 from pydantic import BaseModel
@@ -24,6 +25,7 @@ from openoperator.controller.views import (
     SelectDropdownOptionAction,
     SendKeysAction,
     SwitchTabAction,
+    UploadFilesAction,
 )
 from openoperator.utils import time_execution_async, time_execution_sync
 
@@ -50,7 +52,10 @@ class Controller:
             param_model=SearchGoogleAction,
             requires_browser=True,
         )
-        async def search_google(params: SearchGoogleAction, browser: BrowserContext):
+        async def search_google(
+            params: SearchGoogleAction,
+            browser: BrowserContext,
+        ):
             page = await browser.get_current_page()
             await page.goto(f'https://www.google.com/search?q={params.query}&udm=14')
             await page.wait_for_load_state()
@@ -63,7 +68,10 @@ class Controller:
             param_model=GoToUrlAction,
             requires_browser=True,
         )
-        async def go_to_url(params: GoToUrlAction, browser: BrowserContext):
+        async def go_to_url(
+            params: GoToUrlAction,
+            browser: BrowserContext,
+        ):
             page = await browser.get_current_page()
             await page.goto(params.url)
             await page.wait_for_load_state()
@@ -71,16 +79,30 @@ class Controller:
             logger.info(msg)
             return ActionResult(extracted_content=msg, include_in_memory=True)
 
-        @self.registry.action('Go back', param_model=NoParamsAction, requires_browser=True)
-        async def go_back(_: NoParamsAction, browser: BrowserContext):
+        @self.registry.action(
+            'Go back',
+            param_model=NoParamsAction,
+            requires_browser=True,
+        )
+        async def go_back(
+            _: NoParamsAction,
+            browser: BrowserContext,
+        ):
             await browser.go_back()
             msg = '🔙  Navigated back'
             logger.info(msg)
             return ActionResult(extracted_content=msg, include_in_memory=True)
 
         # Element Interaction Actions
-        @self.registry.action('Click element', param_model=ClickElementAction, requires_browser=True)
-        async def click_element(params: ClickElementAction, browser: BrowserContext):
+        @self.registry.action(
+            'Click element',
+            param_model=ClickElementAction,
+            requires_browser=True,
+        )
+        async def click_element(
+            params: ClickElementAction,
+            browser: BrowserContext,
+        ):
             session = await browser.get_session()
             state = session.cached_state
 
@@ -119,11 +141,16 @@ class Controller:
                 return ActionResult(error=str(e))
 
         @self.registry.action(
-            'Input text into a input interactive element',
+            'Input text into an input interactive element. Allows placeholders.',
             param_model=InputTextAction,
             requires_browser=True,
+            allows_additional_information=True,
         )
-        async def input_text(params: InputTextAction, browser: BrowserContext):
+        async def input_text(
+            params: InputTextAction,
+            browser: BrowserContext,
+            additional_information: Dict[str, str] = {},
+        ):
             session = await browser.get_session()
             state = session.cached_state
 
@@ -131,15 +158,47 @@ class Controller:
                 raise Exception(f'Element index {params.index} does not exist - retry or use alternative actions')
 
             element_node = state.selector_map[params.index]
-            await browser.input_text_element_node(element_node, params.text)
-            msg = f'⌨️  Input "{params.text}" into index {params.index}'
+
+            # Function to replace placeholders with actual values and collect missing keys
+            def replace_placeholders(text: str, info: Dict[str, str]) -> str:
+                pattern = re.compile(r'\*\*\*(.*?)\*\*\*')
+                placeholders = pattern.findall(text)
+                missing_keys = [key for key in placeholders if key not in info]
+
+                if missing_keys:
+                    # Remove duplicates by converting to a set
+                    unique_missing_keys = set(missing_keys)
+                    missing_keys_str = ', '.join(f'"{key}"' for key in unique_missing_keys)
+                    raise KeyError(f'Placeholder key(s) {missing_keys_str} not found in additional_information.')
+
+                # If all keys are present, perform the replacement
+                def replacer(match):
+                    key = match.group(1)
+                    return info[key]
+
+                return pattern.sub(replacer, text)
+
+            try:
+                # Replace placeholders in the input text
+                processed_text = replace_placeholders(params.text, additional_information)
+            except KeyError as e:
+                logger.error(str(e))
+                raise Exception(f'Placeholder replacement error: {str(e)}')
+
+            # Input the processed text into the element
+            await browser.input_text_element_node(element_node, processed_text)
+
+            msg = f'⌨️  Input "{processed_text}" into index {params.index}'
             logger.info(msg)
             logger.debug(f'Element xpath: {element_node.xpath}')
             return ActionResult(extracted_content=msg, include_in_memory=True)
 
         # Tab Management Actions
         @self.registry.action('Switch tab', param_model=SwitchTabAction, requires_browser=True)
-        async def switch_tab(params: SwitchTabAction, browser: BrowserContext):
+        async def switch_tab(
+            params: SwitchTabAction,
+            browser: BrowserContext,
+        ):
             await browser.switch_to_tab(params.page_id)
             # Wait for tab to be ready
             page = await browser.get_current_page()
@@ -149,7 +208,10 @@ class Controller:
             return ActionResult(extracted_content=msg, include_in_memory=True)
 
         @self.registry.action('Open url in new tab', param_model=OpenTabAction, requires_browser=True)
-        async def open_tab(params: OpenTabAction, browser: BrowserContext):
+        async def open_tab(
+            params: OpenTabAction,
+            browser: BrowserContext,
+        ):
             await browser.create_new_tab(params.url)
             msg = f'🔗  Opened new tab with {params.url}'
             logger.info(msg)
@@ -161,7 +223,10 @@ class Controller:
             param_model=ExtractPageContentAction,
             requires_browser=True,
         )
-        async def extract_content(params: ExtractPageContentAction, browser: BrowserContext):
+        async def extract_content(
+            params: ExtractPageContentAction,
+            browser: BrowserContext,
+        ):
             page = await browser.get_current_page()
             output_format = 'markdown' if params.include_links else 'text'
             content = MainContentExtractor.extract(  # type: ignore
@@ -172,7 +237,11 @@ class Controller:
             logger.info(msg)
             return ActionResult(extracted_content=msg)
 
-        @self.registry.action('Complete task', param_model=DoneAction)
+        @self.registry.action(
+            'Complete task',
+            param_model=DoneAction,
+            requires_browser=False,
+        )
         async def done(params: DoneAction):
             return ActionResult(is_done=True, extracted_content=params.text)
 
@@ -181,7 +250,10 @@ class Controller:
             param_model=ScrollAction,
             requires_browser=True,
         )
-        async def scroll_down(params: ScrollAction, browser: BrowserContext):
+        async def scroll_down(
+            params: ScrollAction,
+            browser: BrowserContext,
+        ):
             page = await browser.get_current_page()
             if params.amount is not None:
                 await page.evaluate(f'window.scrollBy(0, {params.amount});')
@@ -202,7 +274,10 @@ class Controller:
             param_model=ScrollAction,
             requires_browser=True,
         )
-        async def scroll_up(params: ScrollAction, browser: BrowserContext):
+        async def scroll_up(
+            params: ScrollAction,
+            browser: BrowserContext,
+        ):
             page = await browser.get_current_page()
             if params.amount is not None:
                 await page.evaluate(f'window.scrollBy(0, -{params.amount});')
@@ -223,7 +298,10 @@ class Controller:
             param_model=SendKeysAction,
             requires_browser=True,
         )
-        async def send_keys(params: SendKeysAction, browser: BrowserContext):
+        async def send_keys(
+            params: SendKeysAction,
+            browser: BrowserContext,
+        ):
             page = await browser.get_current_page()
 
             await page.keyboard.press(params.keys)
@@ -236,7 +314,10 @@ class Controller:
             param_model=ScrollToTextAction,
             requires_browser=True,
         )
-        async def scroll_to_text(params: ScrollToTextAction, browser: BrowserContext):  # type: ignore
+        async def scroll_to_text(
+            params: ScrollToTextAction,
+            browser: BrowserContext,
+        ):
             page = await browser.get_current_page()
 
             try:
@@ -274,7 +355,10 @@ class Controller:
             param_model=GetDropdownOptionsAction,
             requires_browser=True,
         )
-        async def get_dropdown_options(params: GetDropdownOptionsAction, browser: BrowserContext) -> ActionResult:
+        async def get_dropdown_options(
+            params: GetDropdownOptionsAction,
+            browser: BrowserContext,
+        ) -> ActionResult:
             """Get all options from a native dropdown"""
             page = await browser.get_current_page()
             selector_map = await browser.get_selector_map()
@@ -438,18 +522,73 @@ class Controller:
                 logger.error(msg)
                 return ActionResult(error=msg, include_in_memory=True)
 
-    def action(self, description: str, **kwargs):
-        """Decorator for registering custom actions
+        @self.registry.action(
+            'Upload files', param_model=UploadFilesAction, requires_browser=True, allows_additional_information=True
+        )
+        async def upload_files(
+            params: UploadFilesAction,
+            browser: BrowserContext,
+            additional_information: Dict[str, str] = {},
+        ):
+            index = params.index
 
-        @param description: Describe the LLM what the function does (better description == better function calling)
-        """
-        return self.registry.action(description, **kwargs)
+            dom_el = await browser.get_dom_element_by_index(index)
+
+            if dom_el is None:
+                return ActionResult(error=f'No element found at index {index}')
+
+            file_upload_dom_el = dom_el.get_file_upload_element()
+
+            if file_upload_dom_el is None:
+                logger.info(f'No file upload element found at index {index}')
+                return ActionResult(error=f'No file upload element found at index {index}')
+
+            file_upload_el = await browser.get_locate_element(file_upload_dom_el)
+
+            if file_upload_el is None:
+                logger.info(f'No file upload element found at index {index}')
+                return ActionResult(error=f'No file upload element found at index {index}')
+
+            try:
+                paths = []
+                for file_name in params.file_names:
+                    if file_name not in additional_information:
+                        logger.warning(f"No mapping for {file_name} available.")
+                        continue
+                    paths.append(additional_information[file_name])
+                await file_upload_el.set_input_files(paths)
+                msg = f'Successfully uploaded files to index {index}'
+                logger.info(msg)
+                return ActionResult(extracted_content=msg)
+            except Exception as e:
+                logger.debug(f'Error in set_input_files: {str(e)}')
+                return ActionResult(error=f'Failed to upload files to index {index}. {str(e)}')
+
+        @self.registry.action(
+            'Close file dialog',
+            param_model=NoParamsAction,
+            requires_browser=True,
+        )
+        async def close_file_dialog(
+            params: NoParamsAction,
+            browser: BrowserContext,
+        ):
+            page = await browser.get_current_page()
+            await page.keyboard.press('Escape')
+
+        def action(self, description: str, **kwargs):
+            """Decorator for registering custom actions
+
+            @param description: Describe the LLM what the function does (better description == better function calling)
+            """
+            return self.registry.action(description, **kwargs)
 
     @time_execution_async('--multi-act')
     async def multi_act(
         self,
         actions: list[ActionModel],
         browser_context: BrowserContext,
+        additional_information: Optional[Dict[str, str]],
         check_for_new_elements: bool = True,
     ) -> list[ActionResult]:
         """Execute multiple actions"""
@@ -469,7 +608,7 @@ class Controller:
                     logger.info(f'Something new appeared after action {i} / {len(actions)}')
                     break
 
-            results.append(await self.act(action, browser_context))
+            results.append(await self.act(action, browser_context, additional_information))
 
             logger.debug(f'Executed action {i + 1} / {len(actions)}')
             if results[-1].is_done or results[-1].error or i == len(actions) - 1:
@@ -481,13 +620,19 @@ class Controller:
         return results
 
     @time_execution_sync('--act')
-    async def act(self, action: ActionModel, browser_context: BrowserContext) -> ActionResult:
+    async def act(
+        self,
+        action: ActionModel,
+        browser_context: BrowserContext,
+        additional_information: Optional[Dict[str, str]] = None,
+    ) -> ActionResult:
         """Execute an action"""
         try:
             for action_name, params in action.model_dump(exclude_unset=True).items():
                 if params is not None:
-                    # remove highlights
-                    result = await self.registry.execute_action(action_name, params, browser=browser_context)
+                    result = await self.registry.execute_action(
+                        action_name, params, browser=browser_context, additional_information=additional_information
+                    )
                     if isinstance(result, str):
                         return ActionResult(extracted_content=result)
                     elif isinstance(result, ActionResult):

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import traceback
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional, Type
 
@@ -17,12 +16,6 @@ from openoperator.dom.history_tree_processor.service import (
     HistoryTreeProcessor,
 )
 from openoperator.dom.views import SelectorMap
-
-
-@dataclass
-class AgentStepInfo:
-    step_number: int
-    max_steps: int
 
 
 class ActionResult(BaseModel):

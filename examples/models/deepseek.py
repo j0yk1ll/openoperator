@@ -20,14 +20,10 @@ async def run_search():
         use_vision=False,
     )
 
-    agent.add_tasks(
-        [
-            'Go to https://www.reddit.com/r/LocalLLaMA',
-            "Search for 'OpenOperator' in the search bar",
-            'Click on first result',
-            'Return the first comment',
-        ]
-    )
+    agent.add_task('Go to https://www.reddit.com/r/LocalLLaMA')
+    agent.add_task("Search for 'OpenOperator' in the search bar")
+    agent.add_task('Click on first result')
+    agent.add_task('Return the first comment')
 
     await agent.run()
 

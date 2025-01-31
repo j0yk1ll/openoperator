@@ -11,12 +11,8 @@ async def run_search():
         max_actions_per_step=4,
     )
 
-    agent.add_tasks(
-        [
-            'Go to url r/LocalLLaMA subreddit and search for "OpenOperator" in the search bar',
-            'Click on the first post and find the funniest comment',
-        ]
-    )
+    agent.add_task('Go to url r/LocalLLaMA subreddit and search for "OpenOperator" in the search bar')
+    agent.add_task('Click on the first post and find the funniest comment')
 
     await agent.run(max_steps=25)
 

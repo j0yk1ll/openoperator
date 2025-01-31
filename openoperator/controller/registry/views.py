@@ -11,6 +11,7 @@ class RegisteredAction(BaseModel):
     function: Callable
     param_model: Type[BaseModel]
     requires_browser: bool = False
+    allows_additional_information: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

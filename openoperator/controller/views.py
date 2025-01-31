@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, model_validator
 
@@ -56,6 +56,11 @@ class GetDropdownOptionsAction(BaseModel):
 class SelectDropdownOptionAction(BaseModel):
     index: int
     text: str
+
+
+class UploadFilesAction(BaseModel):
+    index: int
+    file_names: List[str]
 
 
 class NoParamsAction(BaseModel):

@@ -3,7 +3,8 @@ from typing import List, Optional
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from openoperator.agent.views import ActionResult, AgentStepInfo
+from openoperator.agent.task_manager.service import Task
+from openoperator.agent.views import ActionResult
 from openoperator.browser.views import BrowserState
 
 
@@ -160,19 +161,13 @@ class AgentMessagePrompt:
         result: Optional[List[ActionResult]] = None,
         include_attributes: list[str] = [],
         max_error_length: int = 400,
-        step_info: Optional[AgentStepInfo] = None,
     ):
         self.state = state
         self.result = result
         self.max_error_length = max_error_length
         self.include_attributes = include_attributes
-        self.step_info = step_info
 
     def get_user_message(self) -> HumanMessage:
-        step_info_description = ''
-        if self.step_info:
-            step_info_description = f'Current step: {self.step_info.step_number + 1}/{self.step_info.max_steps}'
-
         elements_text = self.state.element_tree.clickable_elements_to_string(include_attributes=self.include_attributes)
         has_content_above = (self.state.pixels_above or 0) > 0
         has_content_below = (self.state.pixels_below or 0) > 0
@@ -194,7 +189,6 @@ class AgentMessagePrompt:
             elements_text = 'empty page'
 
         state_description = f"""
-{step_info_description}
 Current url: {self.state.url}
 Available tabs:
 {self.state.tabs}
@@ -248,3 +242,24 @@ class ValidatorSystemPrompt:
             'Example: {"is_valid": false, "reason": "The user wanted to search for cat photos, but the agent searched for dog photos."}'
         )
         return SystemMessage(content=text)
+
+
+class TaskPrompt:
+
+    def __init__(self, task: Task):
+        self.task = task
+
+    def get_user_message(self) -> HumanMessage:
+        content = (
+            f'Your ultimate task is: {self.task.description}. '
+            'If you achieved your ultimate task, stop everything and use the done action in the next step to complete '
+            'the task. If not, continue as usual.'
+        )
+
+        if self.task.additional_information:
+
+            placeholder_string = ", ".join([f"***{key}***" for key in self.task.additional_information])
+
+            content += f'You can use {placeholder_string} as placeholders in actions that allow it. The placeholders will be automatically be replaced.'
+
+        return HumanMessage(content=content)
