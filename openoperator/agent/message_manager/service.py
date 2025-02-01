@@ -146,6 +146,7 @@ class MessageManager:
         self,
         state: BrowserState,
         result: Optional[List[ActionResult]] = None,
+        use_vision: bool = False,
     ) -> None:
         """Add browser state as human message."""
         if result:
@@ -163,6 +164,7 @@ class MessageManager:
         state_message = AgentMessagePrompt(
             state,
             result,
+            use_vision=use_vision,
             include_attributes=self.include_attributes,
             max_error_length=self.max_error_length,
         ).get_user_message()

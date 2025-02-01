@@ -599,11 +599,11 @@ class BrowserContext:
         return await page.evaluate(script)
 
     @time_execution_sync('--get_state')  # This decorator might need to be updated to handle async
-    async def get_state(self, use_vision: bool = False) -> BrowserState:
+    async def get_state(self) -> BrowserState:
         """Get the current state of the browser"""
         await self._wait_for_page_and_frames_load()
         session = await self.get_session()
-        session.cached_state = await self._update_state(use_vision=use_vision)
+        session.cached_state = await self._update_state()
 
         # Save cookies if a file is specified
         if self.config.cookies_file:
@@ -611,7 +611,7 @@ class BrowserContext:
 
         return session.cached_state
 
-    async def _update_state(self, use_vision: bool = False, focus_element: int = -1) -> BrowserState:
+    async def _update_state(self, focus_element: int = -1) -> BrowserState:
         """Update and return state."""
         session = await self.get_session()
 
@@ -640,9 +640,7 @@ class BrowserContext:
                 highlight_elements=self.config.highlight_elements,
             )
 
-            screenshot_b64 = None
-            if use_vision:
-                screenshot_b64 = await self.take_screenshot()
+            screenshot_b64 = await self.take_screenshot()
             pixels_above, pixels_below = await self.get_scroll_info(page)
 
             self.current_state = BrowserState(

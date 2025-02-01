@@ -159,11 +159,13 @@ class AgentMessagePrompt:
         self,
         state: BrowserState,
         result: Optional[List[ActionResult]] = None,
+        use_vision: bool = False,
         include_attributes: list[str] = [],
         max_error_length: int = 400,
     ):
         self.state = state
         self.result = result
+        self.use_vision = use_vision
         self.max_error_length = max_error_length
         self.include_attributes = include_attributes
 
@@ -206,7 +208,7 @@ Interactive elements from current page view:
                     state_description += f'\nAction error {i + 1}/{len(self.result)}: ...{error_snippet}'
 
         # If there's a screenshot, format for a vision model
-        if self.state.screenshot:
+        if self.state.screenshot and self.use_vision:
             return HumanMessage(
                 content=[
                     {'type': 'text', 'text': state_description},

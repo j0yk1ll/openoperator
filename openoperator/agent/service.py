@@ -314,14 +314,14 @@ class Agent:
 
         try:
             # Grab state from browser
-            state = await self.browser_context.get_state(use_vision=self.use_vision)
+            state = await self.browser_context.get_state()
 
             if self._stopped or self._paused:
                 logger.debug('Agent paused/stopped after getting state.')
                 raise InterruptedError
 
             # Add the state to the message manager
-            self.message_manager.add_state_message(state, self._last_result)
+            self.message_manager.add_state_message(state, self._last_result, self.use_vision)
             input_messages = self.message_manager.get_messages()
 
             try:
@@ -439,7 +439,7 @@ class Agent:
         """A post-step or post-task validation check using a validator prompt."""
         validation_prompt = ValidatorSystemPrompt(task)
         if self.browser_context.session:
-            state = await self.browser_context.get_state(use_vision=self.use_vision)
+            state = await self.browser_context.get_state()
             content = AgentMessagePrompt(
                 state=state,
                 result=self._last_result,
