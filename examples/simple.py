@@ -8,7 +8,7 @@ from openoperator.llm import LLM
 load_dotenv()
 
 # Initialize the model
-llm = LLM('ollama/llama3.2')
+llm = LLM('openai/gpt-4o')
 
 agent = Agent(llm=llm)
 agent.add_task('Find the founders of browser-use and draft them a short personalized message')
