@@ -38,6 +38,14 @@ class ViewportInfo(BaseModel):
     height: int
 
 
+@dataclass(frozen=False)
+class Position:
+    top: int
+    left: int
+    width: int
+    height: int
+
+
 @dataclass
 class DOMHistoryElement:
     tag_name: str
@@ -46,6 +54,7 @@ class DOMHistoryElement:
     entire_parent_branch_path: list[str]
     attributes: dict[str, str]
     shadow_root: bool = False
+    position: Optional[Position] = None
     css_selector: Optional[str] = None
     page_coordinates: Optional[CoordinateSet] = None
     viewport_coordinates: Optional[CoordinateSet] = None

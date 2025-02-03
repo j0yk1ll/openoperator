@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import TYPE_CHECKING, Dict, List, Optional
 
-from openoperator.dom.history_tree_processor.view import CoordinateSet, HashedDomElement, ViewportInfo
+from openoperator.dom.history_tree_processor.view import CoordinateSet, HashedDomElement, Position, ViewportInfo
 
 # Avoid circular import issues
 if TYPE_CHECKING:
@@ -45,6 +45,7 @@ class DOMElementNode(DOMBaseNode):
     is_top_element: bool = False
     shadow_root: bool = False
     highlight_index: Optional[int] = None
+    position: Optional[Position] = None
     viewport_coordinates: Optional[CoordinateSet] = None
     page_coordinates: Optional[CoordinateSet] = None
     viewport_info: Optional[ViewportInfo] = None

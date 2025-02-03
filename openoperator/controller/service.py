@@ -597,7 +597,6 @@ class Controller:
         session = await browser_context.get_session()
         cached_selector_map = session.cached_state.selector_map
         cached_path_hashes = set(e.hash.branch_path_hash for e in cached_selector_map.values())
-        await browser_context.remove_highlights()
 
         for i, action in enumerate(actions):
             if action.get_index() is not None and i != 0:

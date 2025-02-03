@@ -632,7 +632,6 @@ class BrowserContext:
                 raise BrowserError('Browser closed: no valid pages available')
 
         try:
-            await self.remove_highlights()
             dom_service = DomService(page)
             content = await dom_service.get_clickable_elements(
                 focus_element=focus_element,
@@ -680,37 +679,6 @@ class BrowserContext:
         # await self.remove_highlights()
 
         return screenshot_b64
-
-    async def remove_highlights(self):
-        """
-        Removes all highlight overlays and labels created by the highlightElement function.
-        Handles cases where the page might be closed or inaccessible.
-        """
-        try:
-            page = await self.get_current_page()
-            await page.evaluate(
-                """
-                try {
-                    // Remove the highlight container and all its contents
-                    const container = document.getElementById('playwright-highlight-container');
-                    if (container) {
-                        container.remove();
-                    }
-
-                    // Remove highlight attributes from elements
-                    const highlightedElements = document.querySelectorAll('[browser-user-highlight-id^="playwright-highlight-"]');
-                    highlightedElements.forEach(el => {
-                        el.removeAttribute('browser-user-highlight-id');
-                    });
-                } catch (e) {
-                    console.error('Failed to remove highlights:', e);
-                }
-                """
-            )
-        except Exception as e:
-            logger.debug(f'Failed to remove highlights (this is usually ok): {str(e)}')
-            # Don't raise the error since this is not critical functionality
-            pass
 
     # endregion
 

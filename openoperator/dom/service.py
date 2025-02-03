@@ -4,7 +4,7 @@ from typing import Optional
 
 from playwright.async_api import Page
 
-from openoperator.dom.history_tree_processor.view import Coordinates
+from openoperator.dom.history_tree_processor.view import Coordinates, Position
 from openoperator.dom.views import (
     CoordinateSet,
     DOMBaseNode,
@@ -122,6 +122,14 @@ class DomService:
                 height=node_data['viewport']['height'],
             )
 
+        position_data = node_data.get('position', {})
+        position = Position(
+            top=position_data.get('top', 0),
+            left=position_data.get('left', 0),
+            width=position_data.get('width', 0),
+            height=position_data.get('height', 0),
+        )
+
         element_node = DOMElementNode(
             tag_name=tag_name,
             xpath=node_data['xpath'],
@@ -133,6 +141,7 @@ class DomService:
             highlight_index=node_data.get('highlightIndex'),
             shadow_root=node_data.get('shadowRoot', False),
             parent=parent,
+            position=position,
             viewport_coordinates=viewport_coordinates,
             page_coordinates=page_coordinates,
             viewport_info=viewport_info,
