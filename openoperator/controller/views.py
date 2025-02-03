@@ -33,7 +33,7 @@ class OpenTabAction(BaseModel):
     url: str
 
 
-class ExtractPageContentAction(BaseModel):
+class GetPageContentAction(BaseModel):
     include_links: bool
 
 

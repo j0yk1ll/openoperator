@@ -13,8 +13,8 @@ from openoperator.controller.registry.service import Registry
 from openoperator.controller.views import (
     ClickElementAction,
     DoneAction,
-    ExtractPageContentAction,
     GetDropdownOptionsAction,
+    GetPageContentAction,
     GoToUrlAction,
     InputTextAction,
     NoParamsAction,
@@ -219,12 +219,12 @@ class Controller:
 
         # Content Actions
         @self.registry.action(
-            'Extract page content to get the pure text or markdown with links if include_links is set to true',
-            param_model=ExtractPageContentAction,
+            'Get page content as pure text or markdown with links if include_links is set to true',
+            param_model=GetPageContentAction,
             requires_browser=True,
         )
-        async def extract_content(
-            params: ExtractPageContentAction,
+        async def get_page_content(
+            params: GetPageContentAction,
             browser: BrowserContext,
         ):
             page = await browser.get_current_page()
@@ -233,7 +233,7 @@ class Controller:
                 html=await page.content(),
                 output_format=output_format,
             )
-            msg = f'📄  Extracted page as {output_format}\n: {content}\n'
+            msg = f'📄  Page content in {output_format} format\n: {content}\n'
             logger.info(msg)
             return ActionResult(extracted_content=msg)
 
